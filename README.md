@@ -1,2 +1,2 @@
 # KHDownloader
-Unofficial PowerShell script to download albums from KHInsider
+Unofficial PowerShell Core script to download albums from KHInsider, with robust resume functionality
