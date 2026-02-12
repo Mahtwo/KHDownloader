@@ -154,27 +154,25 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	# Get page URL of each song
 	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
 	$pDSLength = $playlistDownloadSong.Length
-	$songsPageURL = [string[]]::new($pDSLength)
+	$songsURL = [string[]]::new($pDSLength)
 	for ($index = 0; $index -lt $pDSLength; $index++) {
 		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 10))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
-		$songPageURL = $songPageURL -replace '^about:', $url.GetLeftPart([System.UriPartial]::Authority)
-		$songsPageURL[$index] = $songPageURL
+		$songsURL[$index] = $songPageURL -replace '^about:', $url.GetLeftPart([System.UriPartial]::Authority)
 	}
 
 	# Create file containing all songs page URLs
-	foreach ($songPageURL in $songsPageURL) {
+	foreach ($songPageURL in $songsURL) {
 		Add-Content -LiteralPath $tempFile -Value $songPageURL
 	}
 
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 10
 }
 else {
-	$songsPageURL = Get-Content -LiteralPath $tempFile
+	$songsURL = Get-Content -LiteralPath $tempFile
 }
 
 ## CONVERT ALL SONGS PAGE URL TO SONGS URL
-$songsURL = $songsPageURL
 if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 10
 
@@ -193,11 +191,11 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 		}
 	}
 
-	$sPULength = $songsPageURL.Length
+	$sULength = $songsURL.Length
 	try {
-		for ($index = 0; $index -lt $sPULength; $index++) {
-			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sPULength)" -PercentComplete (10 + [math]::Floor($index / $sPULength * 10))
-			$songPageURL = $songsPageURL[$index]
+		for ($index = 0; $index -lt $sULength; $index++) {
+			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete (10 + [math]::Floor($index / $sULength * 10))
+			$songPageURL = $songsURL[$index]
 			if (-not $songPageURL.Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 				# Skip URLs already converted
 				continue
@@ -239,17 +237,18 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 		# The catch can be removed when/if https://github.com/PowerShell/PowerShell/issues/21345 is fixed
 		throw $_
 	}
+	# Save current progress even on errors or Ctrl-C
 	finally {
-		# Save current progress even on errors or Ctrl-C
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
+		# $songURL can either be a download URL, or a remaining page URL if the script was interrupted
 		foreach ($songURL in $songsURL) {
 			Add-Content -LiteralPath $tempFileTemp -Value $songURL
 		}
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
 
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sPULength)" -PercentComplete 20
+	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete 20
 }
 elseif ($format -ne 'MP3') {
 	Write-Warning "All songs URL are present, format $format will not be checked"
@@ -259,8 +258,8 @@ elseif ($format -ne 'MP3') {
 $sULength = $songsURL.Length
 $songsFile = [string[]]::new($sULength)
 for ($index = 0; $index -lt $sULength; $index++) {
-	$songURL = $songsURL[$index]
-	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
+	$songDownloadURL = $songsURL[$index]
+	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
 	$filepath = Join-Path -Path $pwd -ChildPath $albumName -AdditionalChildPath $filename
 	$songsFile[$index] = $filepath
 }
@@ -276,10 +275,10 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	}
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
 
-	$songURL = $songsURL[$index]
+	$songDownloadURL = $songsURL[$index]
 	$songFile = $songsFile[$index]
 	try {
-		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $songFile $songURL > $null
+		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $songFile $songDownloadURL > $null
 	}
 	catch {
 		# Necessary to exit on Invoke-WebRequest error, otherwise those errors don't end the script
