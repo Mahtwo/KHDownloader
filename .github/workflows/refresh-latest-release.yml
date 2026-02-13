@@ -1,0 +1,39 @@
+name: Refresh latest release
+
+on:
+  # Runs when khd.ps1 is changed on default branch only
+  push:
+    branches: ["main"]
+    paths: 
+    - 'khd.ps1'
+
+# Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
+concurrency:
+  group: refresh-latest-release
+
+# Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/master/.github/workflows/android.yml
+jobs:
+  refresh-latest-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout khd.ps1
+      uses: actions/checkout@v6
+      with :
+        sparse-checkout: khd.ps1
+        sparse-checkout-cone-mode: false
+
+    - name: Update latest tag
+      run: |
+        git tag --force latest
+        git push --force origin tag latest
+
+    - name: Delete latest release
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release delete latest --yes
+
+    - name: Create latest release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release create latest --latest --title "Latest" 'khd.ps1'
