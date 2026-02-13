@@ -155,6 +155,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
 	$pDSLength = $playlistDownloadSong.Length
 	$songsURL = [string[]]::new($pDSLength)
+	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
 		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
@@ -173,7 +174,7 @@ else {
 }
 
 ## CONVERT ALL SONGS PAGE URL TO SONGS URL
-if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
+if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
 	if ($format -ne 'MP3') {
@@ -193,43 +194,54 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 
 	$sULength = $songsURL.Length
 	try {
-		for ($index = 0; $index -lt $sULength; $index++) {
-			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete (5 + [math]::Floor($index / $sULength * 15))
-			$songPageURL = $songsURL[$index]
-			if (-not $songPageURL.Contains('downloads.khinsider.com/game-soundtracks/album/')) {
-				# Skip URLs already converted
-				continue
-			}
+		# We assume more CPU cores means more RAM. -ThrottleLimit has diminishing returns anyway
+		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([Environment]::ProcessorCount * 5) -Parallel {
+			$songsURL = $Using:songsURL # No need for thread safe array since each runspace only modifiy their index
+			$songPageURL = $songsURL[$_]
 
-			$SongPage = (Invoke-WebRequest -ErrorAction Stop $songPageURL).Content
+			try {
+				$SongPage = (Invoke-WebRequest -ErrorAction Stop $songPageURL).Content
+			}
+			catch {
+				throw $_
+			}
 			$songPageHtml = New-Object -Com 'HTMLFile'
 			$songPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($SongPage))
 			$songDownloadLinks = $songPageHtml.GetElementsByClassName('songDownloadLink')
 
 			# Check if format is available (the format may not be available for every song)
-			$formatFound = $false
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith($format)) {
-					$songsURL[$index] = $songDownloadLink.parentElement.href
-					$formatFound = $true
-					break
+				if ($songDownloadLink.innerText.EndsWith($Using:format)) {
+					$songsURL[$_] = $songDownloadLink.parentElement.href
+					return
 				}
-			}
-			if ($formatFound) {
-				continue
 			}
 
 			# Fallback to MP3
 			foreach ($songDownloadLink in $songDownloadLinks) {
 				if ($songDownloadLink.innerText.EndsWith('MP3')) {
 					$href = $songDownloadLink.parentElement.href
-					$songsURL[$index] = $href
+					$songsURL[$_] = $href
 					# Prettify filename without extension from URL for warning
 					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-					Write-Warning "Format $format not found for $filename, fallbacking to MP3"
-					break
+					Write-Warning "Format $Using:format not found for $filename, fallbacking to MP3"
 				}
 			}
+		}
+		$remainingChildJobs = $getSongsDownloadURLJob.ChildJobs
+		$totalCount = $remainingChildJobs.Count
+		while ($getSongsDownloadURLJob.State -eq 'Running') {
+			$remainingChildJobs | Wait-Job -Any > $null
+			$getSongsDownloadURLJob | Receive-Job
+
+			# Check for any failed job
+			if ($remainingChildJobs | Where-Object -Property State -EQ -Value 'Failed' | Select-Object -First 1) {
+				return
+			}
+
+			$remainingChildJobs = $remainingChildJobs | Where-Object -Property State -In -Value 'NotStarted', 'Running'
+			$doneCount = $totalCount - $remainingChildJobs.Count
+			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		}
 	}
 	catch {
@@ -239,7 +251,14 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	}
 	# Save current progress even on errors or Ctrl-C
 	finally {
-		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($index / $sULength * 15))
+		# Script may have interrupted before creating the job
+		if ($getSongsDownloadURLJob) {
+			$getSongsDownloadURLJob | Stop-Job
+		}
+		else {
+			$totalCount = 1 # Avoids a division by zero
+		}
+		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
 		# $songURL can either be a download URL, or a remaining page URL if the script was interrupted
