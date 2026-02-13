@@ -156,7 +156,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	$pDSLength = $playlistDownloadSong.Length
 	$songsURL = [string[]]::new($pDSLength)
 	for ($index = 0; $index -lt $pDSLength; $index++) {
-		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 10))
+		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
 		$songsURL[$index] = $songPageURL -replace '^about:', $url.GetLeftPart([System.UriPartial]::Authority)
 	}
@@ -166,7 +166,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 		Add-Content -LiteralPath $tempFile -Value $songPageURL
 	}
 
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 10
+	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
 }
 else {
 	$songsURL = Get-Content -LiteralPath $tempFile
@@ -174,7 +174,7 @@ else {
 
 ## CONVERT ALL SONGS PAGE URL TO SONGS URL
 if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 10
+	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
 	if ($format -ne 'MP3') {
 		# Check if the format is available for this album
@@ -194,7 +194,7 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	$sULength = $songsURL.Length
 	try {
 		for ($index = 0; $index -lt $sULength; $index++) {
-			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete (10 + [math]::Floor($index / $sULength * 10))
+			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete (5 + [math]::Floor($index / $sULength * 15))
 			$songPageURL = $songsURL[$index]
 			if (-not $songPageURL.Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 				# Skip URLs already converted
