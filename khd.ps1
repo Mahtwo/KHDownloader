@@ -239,6 +239,7 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	}
 	# Save current progress even on errors or Ctrl-C
 	finally {
+		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($index / $sULength * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
 		# $songURL can either be a download URL, or a remaining page URL if the script was interrupted
@@ -247,8 +248,6 @@ if ($songsURL[-1].Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 		}
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
-
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($index/$sULength)" -PercentComplete 20
 }
 elseif ($format -ne 'MP3') {
 	Write-Warning "All songs URL are present, format $format will not be checked"
