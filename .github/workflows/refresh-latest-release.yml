@@ -7,6 +7,10 @@ on:
     paths: 
     - 'khd.ps1'
 
+# Sets permissions of the GITHUB_TOKEN to allow modifying tags and releases
+permissions:
+  contents: write
+
 # Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: refresh-latest-release
