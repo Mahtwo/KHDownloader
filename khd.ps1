@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-Downloads an album from KHInsider Video Game Music with resuming functionality.
+Downloads an album from KHInsider Video Game Music with robust resume functionality.
 
 .DESCRIPTION
 The khd.ps1 script downloads an album from the KHInsider Video Game Music website
@@ -25,10 +25,19 @@ None. You can't pipe objects to khd.ps1.
 None. khd.ps1 doesn't generate any output to the pipeline.
 
 .EXAMPLE
-& khd.ps1 https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild
+& khd.ps1 https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017 m4a
 
 .EXAMPLE
-& khd.ps1 https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017 m4a
+$items = @(
+	@{
+		Url = 'https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017'
+   		Format = 'm4a'
+	},
+	@{
+		Url = 'https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild'
+	}
+)
+foreach ($item in $items) {& khd.ps1 @item}
 
 .LINK
 https://downloads.khinsider.com/
@@ -224,7 +233,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 					$songsURL[$_] = $href
 					# Prettify filename without extension from URL for warning
 					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-					Write-Warning "Format $Using:format not found for $filename, fallbacking to MP3"
+					Write-Warning "${Using:albumName}: Format $Using:format not found for $filename, fallbacking to MP3"
 				}
 			}
 		}
@@ -269,7 +278,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	}
 }
 elseif ($format -ne 'MP3') {
-	Write-Warning "All songs URL are present, format $format will not be checked"
+	Write-Warning "${albumName}: All songs URL are present, format $format will not be checked"
 }
 
 ## PREPARE FILENAMES FROM SONGS URL
