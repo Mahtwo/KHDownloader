@@ -29,6 +29,8 @@ jobs:
         sparse-checkout: khd.ps1
         sparse-checkout-cone-mode: false
         fetch-tags: true
+        filter: tree:0
+        fetch-depth: 0
 
     - name: Generate release notes
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
