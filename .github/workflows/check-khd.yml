@@ -1,0 +1,27 @@
+name: Check khd
+
+on:
+  # Runs when khd.ps1 is changed, on default branch or any pull request
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'khd.ps1'
+  pull_request:
+    paths:
+      - 'khd.ps1'
+
+jobs:
+  check-khd:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout khd.ps1
+      uses: actions/checkout@v6
+      with :
+        sparse-checkout: khd.ps1
+        sparse-checkout-cone-mode: false
+
+    - name: Check khd.ps1
+      # Shows annotated comments in the code unlike microsoft/psscriptanalyzer-action
+      uses: martincostello/lint-actions-powershell@v1
+      with:
+        treat-warnings-as-errors: true

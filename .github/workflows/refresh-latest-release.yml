@@ -1,11 +1,12 @@
 name: Refresh latest release
 
 on:
-  # Runs when khd.ps1 is changed on default branch only
-  push:
+  # Runs when workflow "Check khd" has completed (more conditions in job below) or manually
+  workflow_run:
+    workflows: "Check khd"
     branches: ["main"]
-    paths:
-    - 'khd.ps1'
+    types: completed
+  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow modifying tags and releases
 permissions:
@@ -18,6 +19,8 @@ concurrency:
 # Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/master/.github/workflows/android.yml
 jobs:
   refresh-latest-release:
+    # If "Check khd" succeeded on push or workflow started manually
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout khd.ps1
