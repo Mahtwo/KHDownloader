@@ -26,10 +26,10 @@ jobs:
     - name: Checkout khd.ps1
       uses: actions/checkout@v6
       with :
+        # Setting up sparse-checkout automatically adds filter: blob:none
         sparse-checkout: khd.ps1
         sparse-checkout-cone-mode: false
         fetch-tags: true
-        filter: tree:0
         fetch-depth: 0
 
     - name: Generate release notes
