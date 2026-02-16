@@ -20,8 +20,14 @@ jobs:
         sparse-checkout: khd.ps1
         sparse-checkout-cone-mode: false
 
+    # Adapted from Polly lint workflow : https://github.com/App-vNext/Polly/blob/main/.github/workflows/lint.yml
     - name: Check khd.ps1
-      # Shows annotated comments in the code unlike microsoft/psscriptanalyzer-action
-      uses: martincostello/lint-actions-powershell@v1
-      with:
-        treat-warnings-as-errors: true
+      shell: pwsh
+      run: |
+        $issues = Invoke-ScriptAnalyzer -Path './khd.ps1' -ReportSummary
+        foreach ($issue in $issues) {
+          $severity = $issue.Severity.ToString()
+          $level = $severity -eq 'Error' ? 'error' : $severity -eq 'Warning' ? 'warning' : 'notice'
+          Write-Output "::$level file=$($issue.ScriptName),line=$($issue.Line),title=PSScriptAnalyzer::$($issue.Message)"
+        }
+        exit $issues.Count
