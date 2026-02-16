@@ -1,4 +1,6 @@
 name: Refresh latest release
+# Use same run name as workflow_run if available
+run-name: ${{ github.event.workflow_run.name || github.workflow }}
 
 on:
   # Runs when workflow "Check khd" has completed (more conditions in job below) or manually
