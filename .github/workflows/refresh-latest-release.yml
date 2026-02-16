@@ -18,7 +18,7 @@ permissions:
 concurrency:
   group: refresh-latest-release
 
-# Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/master/.github/workflows/android.yml
+# Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/ea584020d5de37d4c755b0f494c1dac16ade7abc/.github/workflows/android.yml
 jobs:
   refresh-latest-release:
     # If "Check khd" succeeded on push or workflow started manually
