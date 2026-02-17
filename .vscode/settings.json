@@ -2,7 +2,10 @@
     "auto-run-command.rules": [
         {
             "condition": "always",
-            "command": "workbench.action.debug.start", // Activates debugger in PowerShell Extension terminal
+            "command": [
+                "workbench.action.terminal.kill", // Closes the second pwsh terminal
+                "workbench.action.debug.start", // Activates debugger in PowerShell Integrated Console
+            ],
         }
     ],
     "editor.formatOnSave": true,
