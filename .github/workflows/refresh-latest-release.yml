@@ -17,6 +17,7 @@ permissions:
 # Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: refresh-latest-release
+  cancel-in-progress: true
 
 # Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/ea584020d5de37d4c755b0f494c1dac16ade7abc/.github/workflows/android.yml
 jobs:
