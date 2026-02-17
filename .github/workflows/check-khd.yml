@@ -41,3 +41,11 @@ jobs:
           Write-Output $output[1..($output.Count - 1)]
         }
         exit $LASTEXITCODE
+
+  refresh-latest-release:
+    needs: check-khd
+    # Don't refresh release on pull request
+    if: ${{ github.event_name == 'push' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/refresh-latest-release.yml
