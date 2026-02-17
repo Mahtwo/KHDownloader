@@ -42,7 +42,7 @@ jobs:
         }
         exit $LASTEXITCODE
 
-  refresh-latest-release:
+  call-refresh-latest-release:
     needs: check-khd
     # Don't refresh release on pull request
     if: ${{ github.event_name == 'push' }}
