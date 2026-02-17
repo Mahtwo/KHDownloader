@@ -31,7 +31,7 @@ jobs:
           foreach ($issue in $issues) {
             $severity = $issue.Severity.ToString()
             $level = $severity -eq 'Error' ? 'error' : $severity -eq 'Warning' ? 'warning' : 'notice'
-            Write-Output "::$level file=$($issue.ScriptName),line=$($issue.Line),title=PSScriptAnalyzer::$($issue.Message)"
+            Write-Output "::$level file=$($issue.ScriptName),line=$($issue.Line),col=$($issue.Column),title=PSScriptAnalyzer::$($issue.Message)"
           }
           exit $issues.Count
         '@
