@@ -17,6 +17,7 @@ concurrency:
 # Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/ea584020d5de37d4c755b0f494c1dac16ade7abc/.github/workflows/android.yml
 jobs:
   refresh-latest-release:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
     - name: Checkout khd.ps1

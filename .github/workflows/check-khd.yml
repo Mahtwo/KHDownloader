@@ -12,6 +12,7 @@ on:
 
 jobs:
   check-khd:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
     - name: Checkout khd.ps1
