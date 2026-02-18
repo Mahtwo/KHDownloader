@@ -18,7 +18,9 @@ jobs:
     - name: Checkout khd.ps1
       uses: actions/checkout@v6
       with :
-        sparse-checkout: khd.ps1
+        sparse-checkout: |
+          khd.ps1
+          PSScriptAnalyzerSettings.psd1
         sparse-checkout-cone-mode: false
 
     # Adapted from Polly lint workflow : https://github.com/App-vNext/Polly/blob/2b569d48f8e6aa141bf4ecd90728d213d380aeb0/.github/workflows/lint.yml#L67
