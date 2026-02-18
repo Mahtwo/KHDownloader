@@ -1,14 +1,16 @@
 name: Check khd
 
 on:
-  # Runs when khd.ps1 is changed, on default branch or any pull request
+  # Runs when khd.ps1 or PSScriptAnalyzerSettings.psd1 are changed, on default branch or any pull request
   push:
     branches: [ "main" ]
     paths:
       - 'khd.ps1'
+      - 'PSScriptAnalyzerSettings.psd1'
   pull_request:
     paths:
       - 'khd.ps1'
+      - 'PSScriptAnalyzerSettings.psd1'
 
 jobs:
   check-khd:
