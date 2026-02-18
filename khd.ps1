@@ -306,7 +306,8 @@ for ($index = 0; $index -lt $sULength; $index++) {
 
 ## CLEAN-UP
 Remove-Item -LiteralPath $mainPageFile, $tempFile
-if ($ProgressPreference -ne 'SilentlyContinue' -and $ProgressPreference -ne 'Ignore') {
+# [System.Environment]::UserInteractive is false if there is no user interface on Windows, always true on other OSs
+if ([System.Environment]::UserInteractive -and $ProgressPreference -notin 'SilentlyContinue', 'Ignore') {
 	# Add a delay to show 100% complete bar for better UX
 	# Write-Progress only update every 200ms and does not update to the last "missed" Write-Progress even after 200ms
 	Start-Sleep -Milliseconds 200
