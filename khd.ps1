@@ -60,8 +60,7 @@ param (
 
 			if ($null -eq $_.Scheme) {
 				[uri]$validateScriptUrl = "https://$_"
-			}
-			else {
+			} else {
 				[uri]$validateScriptUrl = $_
 			}
 
@@ -102,16 +101,14 @@ param (
 
 			if ($null -eq $fakeBoundParameters['Url'].Scheme) {
 				[uri]$argumentCompleterUrl = "https://$($fakeBoundParameters['Url'])"
-			}
-			else {
+			} else {
 				[uri]$argumentCompleterUrl = $fakeBoundParameters['Url']
 			}
 
 			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($argumentCompleterUrl.Segments[-1] + '.html')
 			if (Test-Path -PathType Leaf $mainPageFile) {
 				$mainPage = Get-Content -Raw -LiteralPath $mainPageFile
-			}
-			else {
+			} else {
 				# Will silently fail if no internet connection (which is what we want)
 				$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $argumentCompleterUrl).Content
 			}
@@ -131,8 +128,7 @@ param (
 
 			if ($wordToComplete) {
 				return $availableFormats | Where-Object { $_ -like "$wordToComplete*" }
-			}
-			else {
+			} else {
 				return $availableFormats
 			}
 		}
@@ -177,8 +173,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	}
 
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
-}
-else {
+} else {
 	$songsURL = Get-Content -LiteralPath $tempFile
 }
 
@@ -210,8 +205,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			try {
 				$SongPage = (Invoke-WebRequest -ErrorAction Stop $songPageURL).Content
-			}
-			catch {
+			} catch {
 				throw $_
 			}
 			$songPageHtml = New-Object -Com 'HTMLFile'
@@ -252,8 +246,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			$doneCount = $totalCount - $remainingChildJobs.Count
 			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		}
-	}
-	catch {
+	} catch {
 		# Necessary to exit script on all errors, otherwise some errors (notably from Invoke-WebRequest) continue after finally
 		# The catch can be removed when/if https://github.com/PowerShell/PowerShell/issues/21345 is fixed
 		throw $_
@@ -263,8 +256,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		# Script may have interrupted before creating the job
 		if ($getSongsDownloadURLJob) {
 			$getSongsDownloadURLJob | Stop-Job
-		}
-		else {
+		} else {
 			$totalCount = 1 # Avoids a division by zero
 		}
 		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
@@ -276,8 +268,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		}
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
-}
-elseif ($format -ne 'MP3') {
+} elseif ($format -ne 'MP3') {
 	Write-Warning "${albumName}: All songs URL are present, format $format will not be checked"
 }
 
@@ -287,7 +278,7 @@ $songsFile = [string[]]::new($sULength)
 for ($index = 0; $index -lt $sULength; $index++) {
 	$songDownloadURL = $songsURL[$index]
 	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-	$filepath = Join-Path -Path $pwd -ChildPath $albumName -AdditionalChildPath $filename
+	$filepath = Join-Path $pwd $albumName $filename
 	$songsFile[$index] = $filepath
 }
 
@@ -306,8 +297,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	$songFile = $songsFile[$index]
 	try {
 		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $songFile $songDownloadURL > $null
-	}
-	catch {
+	} catch {
 		# Necessary to exit on Invoke-WebRequest error, otherwise those errors don't end the script
 		# The try-catch can be removed (keep only the Invoke-WebRequest command) when/if https://github.com/PowerShell/PowerShell/issues/21345 is fixed
 		throw $_
