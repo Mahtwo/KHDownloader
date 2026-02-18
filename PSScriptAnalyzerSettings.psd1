@@ -74,7 +74,7 @@
 
 		PSPlaceCloseBrace                = @{
 			Enable       = $true
-			NewLineAfter = $false
+			NewLineAfter = $false # TODO/NOTE : Only branch statements. "} else {" is correct, but not "} New-Item"
 		}
 
 		PSPlaceOpenBrace                 = @{
