@@ -5,7 +5,7 @@
             "name": "PowerShell: Interactive Session",
             "type": "PowerShell",
             "request": "launch",
-            // Activating debugger in PowerShell Integrated Console also shows the debug toolbar.
+            // Activating debugger in PowerShell Extension Terminal also shows the debug toolbar.
             // To hide it, any command can be run. The debug toolbar will show up again when reaching any breakpoints.
             "script": "Clear-Host"
         }

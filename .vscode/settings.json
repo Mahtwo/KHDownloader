@@ -3,8 +3,9 @@
         {
             "condition": "always",
             "command": [
-                "workbench.action.terminal.kill", // Closes the second pwsh terminal
-                "workbench.action.debug.start", // Activates debugger in PowerShell Integrated Console
+                "workbench.action.debug.start", // Activates debugger in PowerShell Extension Terminal and switch to it
+                "workbench.action.terminal.focusPrevious", // Switch to the useless pwsh terminal (creates a new terminal if there are none)
+                "workbench.action.terminal.kill",
             ],
         }
     ],
