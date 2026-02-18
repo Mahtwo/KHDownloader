@@ -1,18 +1,32 @@
 {
-    "auto-run-command.rules": [
-        {
-            "condition": "always",
-            "command": [
-                "workbench.action.debug.start", // Activates debugger in PowerShell Extension Terminal and switch to it
-                "workbench.action.terminal.focusPrevious", // Switch to the useless pwsh terminal (creates a new terminal if there are none)
-                "workbench.action.terminal.kill",
-            ],
-        }
-    ],
-    "editor.formatOnSave": true,
-    "files.trimTrailingWhitespace": true,
-    "powershell.codeFormatting.preset": "OTBS", // Without it, wrong formatting is still detected but not automatically fixed
-    "powershell.cwd": ".",
-    "powershell.scriptAnalysis.enable": true,
-    "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+	"auto-run-command.rules": [
+		{
+			"command": [
+				"workbench.action.debug.start", // Activates debugger in PowerShell Extension Terminal and switch to it
+				"workbench.action.terminal.focusPrevious", // Switch to the useless pwsh terminal (creates a new terminal if there are none)
+				"workbench.action.terminal.kill",
+			],
+			"condition": "always",
+		}
+	],
+	"editor.formatOnSave": true,
+	"files.trimFinalNewlines": true,
+	"json.format.keepLines": true,
+	"powershell.codeFormatting.preset": "OTBS", // Without it, wrong formatting is still detected but not automatically fixed
+	"powershell.cwd": ".",
+	"powershell.scriptAnalysis.enable": true,
+	"powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+
+	// Copied from .editorconfig, use .editorconfig settings if different
+	"editor.insertSpaces": false,
+	"files.encoding": "utf8",
+	"files.insertFinalNewline": true,
+	"files.trimTrailingWhitespace": true, // Without it, still detected but not automatically fixed
+	"[json][jsonc]": {
+		"files.insertFinalNewline": false
+	},
+	"[yaml]": {
+		"editor.insertSpaces": true,
+		"editor.tabSize": 2,
+	},
 }

@@ -1,4 +1,4 @@
-﻿# Original author and source code: https://github.com/Mahtwo/KHDownloader
+# Original author and source code: https://github.com/Mahtwo/KHDownloader
 # SPDX-License-Identifier: MPL-2.0
 
 <#

@@ -1,6 +1,7 @@
 {
 	"recommendations": [
 		"ms-vscode.powershell",
-		"synedra.auto-run-command"
+		"synedra.auto-run-command",
+		"editorconfig.editorconfig"
 	],
 }
