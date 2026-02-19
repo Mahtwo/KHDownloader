@@ -1,9 +1,9 @@
 name: Check khd
 
 on:
-  # Runs when khd.ps1 or PSScriptAnalyzerSettings.psd1 are changed, on default branch or any pull request
+  # Runs when khd.ps1 or PSScriptAnalyzerSettings.psd1 are changed
   push:
-    branches: [ "main" ]
+    branches: '**' # Don't run when pushing tags
     paths:
       - 'khd.ps1'
       - 'PSScriptAnalyzerSettings.psd1'
@@ -49,8 +49,8 @@ jobs:
 
   call-refresh-latest-release:
     needs: check-khd
-    # Don't refresh release on pull request
-    if: ${{ github.event_name == 'push' }}
+    # Don't refresh release on pull request or not main branch
+    if: ${{ github.event_name == 'push' && github.ref == github.event.repository.default_branch }}
     permissions:
       contents: write
     uses: ./.github/workflows/refresh-latest-release.yml
