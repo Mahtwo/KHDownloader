@@ -24,15 +24,16 @@ jobs:
       uses: actions/checkout@v6
       with :
         # Setting up sparse-checkout automatically adds filter: blob:none
-        sparse-checkout: khd.ps1
+        sparse-checkout: |
+          khd.ps1
+          .github/RELEASE_TEMPLATE.md
         sparse-checkout-cone-mode: false
         fetch-tags: true
         fetch-depth: 0
 
     - name: Generate release notes
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
-      # Use $RUNNER_TEMP in case we later add a notes.txt file in the repo
-      run: git log refs/tags/latest..HEAD --oneline --no-decorate -- :/khd.ps1 | tee "$RUNNER_TEMP/notes.txt" "$GITHUB_STEP_SUMMARY"
+      run: git log refs/tags/latest..HEAD --oneline --no-decorate -- :/khd.ps1 | tee --append ".github/RELEASE_TEMPLATE.md" "$GITHUB_STEP_SUMMARY"
 
     - name: Update latest tag
       run: |
@@ -48,4 +49,4 @@ jobs:
     - name: Create latest release
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release create latest --latest --title "Latest" --notes-file "$RUNNER_TEMP/notes.txt" 'khd.ps1'
+      run: gh release create latest --latest --title "Latest" --notes-file ".github/RELEASE_TEMPLATE.md" 'khd.ps1'
