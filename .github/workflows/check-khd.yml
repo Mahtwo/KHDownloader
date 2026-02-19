@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout khd.ps1
+    - name: Checkout khd.ps1 and PSScriptAnalyzerSettings.psd1
       uses: actions/checkout@v6
       with :
         sparse-checkout: |
