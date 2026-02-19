@@ -44,8 +44,8 @@ jobs:
         if ($LASTEXITCODE) {
           "### $($output[0])" >> $env:GITHUB_STEP_SUMMARY
           Write-Output $output[1..($output.Count - 1)]
+          exit $LASTEXITCODE
         }
-        exit $LASTEXITCODE
 
   call-refresh-latest-release:
     needs: check-khd
