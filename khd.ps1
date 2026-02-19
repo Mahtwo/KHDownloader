@@ -31,13 +31,13 @@ None. khd.ps1 doesn't generate any output to the pipeline.
 $items = @(
 	@{
 		Url = 'https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017'
-   		Format = 'm4a'
+		Format = 'm4a'
 	},
 	@{
 		Url = 'https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild'
 	}
 )
-foreach ($item in $items) {& khd.ps1 @item}
+foreach ($item in $items) {& ./khd.ps1 @item}
 
 .LINK
 https://downloads.khinsider.com/
