@@ -14,6 +14,9 @@ concurrency:
   group: refresh-latest-release
   cancel-in-progress: true
 
+env:
+  RELEASE_NOTES_PATH: .github/RELEASE_TEMPLATE.md
+
 # Adapted from Xtra workflow : https://github.com/crackededed/Xtra/blob/ea584020d5de37d4c755b0f494c1dac16ade7abc/.github/workflows/android.yml
 jobs:
   refresh-latest-release:
@@ -26,14 +29,18 @@ jobs:
         # Setting up sparse-checkout automatically adds filter: blob:none
         sparse-checkout: |
           khd.ps1
-          .github/RELEASE_TEMPLATE.md
+          ${{ env.RELEASE_NOTES_PATH }}
         sparse-checkout-cone-mode: false
         fetch-tags: true
         fetch-depth: 0
 
     - name: Generate release notes
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
-      run: git log refs/tags/latest..HEAD --oneline --no-decorate -- :/khd.ps1 | tee --append ".github/RELEASE_TEMPLATE.md" "$GITHUB_STEP_SUMMARY"
+      # If no new changes to khd.ps1, append "None"
+      run: |
+        cat "$RELEASE_NOTES_PATH" > "$GITHUB_STEP_SUMMARY"
+        OUTPUT="$(git log refs/tags/latest..HEAD --oneline --no-decorate -- :/khd.ps1)"
+        echo "${OUTPUT:-None}" | tee --append "$RELEASE_NOTES_PATH" "$GITHUB_STEP_SUMMARY"
 
     - name: Update latest tag
       run: |
@@ -49,4 +56,4 @@ jobs:
     - name: Create latest release
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release create latest --latest --title "Latest" --notes-file ".github/RELEASE_TEMPLATE.md" 'khd.ps1'
+      run: gh release create latest --latest --title "Latest" --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
