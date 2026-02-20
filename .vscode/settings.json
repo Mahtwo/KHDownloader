@@ -21,6 +21,7 @@
 	"editor.insertSpaces": false,
 	"files.encoding": "utf8",
 	"files.insertFinalNewline": true,
+	"git.replaceTagsWhenPull": true,
 	"files.trimTrailingWhitespace": true, // Without it, still detected but not automatically fixed
 	"[json][jsonc]": {
 		"files.insertFinalNewline": false
