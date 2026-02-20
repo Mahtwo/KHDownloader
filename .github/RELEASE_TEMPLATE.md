@@ -12,6 +12,9 @@ And then run the script :
 ```
 
 - ### Linux and macOS
+> [!WARNING]
+> Untested on Linux and macOS
+
 Simply run the script in a pwsh terminal :
 ```powershell
 & "./khd.ps1" -Url ...
