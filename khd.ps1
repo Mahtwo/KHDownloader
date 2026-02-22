@@ -160,7 +160,7 @@ $albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$(
 ## GET ALL SONGS PAGE URL
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.khd')
 if (-not (Test-Path -PathType Leaf $tempFile)) {
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Getting each song page URL' -PercentComplete 0
+	Write-Progress -Activity "Downloading album $albumName" -Status 'Getting each song page URL' -PercentComplete 0
 
 	# Get page URL of each song
 	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
@@ -168,7 +168,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
-		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
+		Write-Progress -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
 		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
 	}
@@ -178,14 +178,14 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 		Add-Content -LiteralPath $tempFile -Value $songPageURL
 	}
 
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
+	Write-Progress -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
 } else {
 	$songsURL = Get-Content -LiteralPath $tempFile
 }
 
 ## CONVERT ALL SONGS PAGE URL TO SONGS URL
 if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/album/')) {
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
+	Write-Progress -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
 	if ($Format -ne 'MP3') {
 		# Check if the format is available for this album
@@ -251,7 +251,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			$remainingChildJobs = $remainingChildJobs | Where-Object -Property State -In -Value 'NotStarted', 'Running'
 			$doneCount = $totalCount - $remainingChildJobs.Count
-			Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+			Write-Progress -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		}
 	} catch {
 		# Necessary to exit script on all errors, otherwise some errors (notably from Invoke-WebRequest) continue after finally
@@ -266,7 +266,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		} else {
 			$totalCount = 1 # Avoids a division by zero
 		}
-		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+		Write-Progress -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
 		# $songURL can either be a download URL, or a remaining page URL if the script was interrupted
@@ -298,7 +298,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	if ($index + 1 -ne $sULength -and (Test-Path -PathType Leaf $songsFile[$index + 1])) {
 		continue
 	}
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
+	Write-Progress -Activity "Downloading album $albumName" -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
 
 	$songDownloadURL = $songsURL[$index]
 	$songFile = $songsFile[$index]
@@ -313,7 +313,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 
 ## DOWNLOADING ALBUM COVER ART
 if (-not $NoCoverArt) {
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Downloading album cover art' -PercentComplete 99
+	Write-Progress -Activity "Downloading album $albumName" -Status 'Downloading album cover art' -PercentComplete 99
 
 	# Use first cover art found
 	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
@@ -338,7 +338,7 @@ if ([System.Environment]::UserInteractive -and $ProgressPreference -notin 'Silen
 	# Add a delay to show 100% complete bar for better UX
 	# Write-Progress only update every 200ms and does not update to the last "missed" Write-Progress even after 200ms
 	Start-Sleep -Milliseconds 200
-	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Done!' -PercentComplete 100
+	Write-Progress -Activity "Downloading album $albumName" -Status 'Done!' -PercentComplete 100
 	Start-Sleep 1
 }
-Write-Progress -Id 23 -Completed
+Write-Progress -Completed
