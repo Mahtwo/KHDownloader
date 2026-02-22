@@ -28,7 +28,7 @@ None. You can't pipe objects to khd.ps1.
 None. khd.ps1 doesn't generate any output to the pipeline.
 
 .EXAMPLE
-& khd.ps1 https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017 m4a
+& ./khd.ps1 https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017 m4a
 
 .EXAMPLE
 $items = @(
@@ -91,7 +91,7 @@ param (
 	)]
 	[uri]$Url,
 
-	[Parameter(Position = 1, HelpMessage = 'Audio format to prioritize (like FLAC, M4A, etc.), if not available will fallback to MP3')]
+	[Parameter(Position = 1)]
 	[Alias('f')]
 	[ArgumentCompletions('')] # Disable suggesting files from working directory when ArgumentCompleter returns nothing
 	# Returning MP3 is technically useless but it's helpful for users not knowing MP3 is always available
@@ -318,13 +318,13 @@ if (-not $NoCoverArt) {
 	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
 	$coverArtUrl = $MainPageHtml.GetElementsByClassName('albumImage')[0].GetElementsByTagName('a')[0].href
 	if ($coverArtUrl) {
-		$fileextension = Split-Path -Extension $coverArtUrl
-		if (-not $fileextension) {
+		$fileExtension = Split-Path -Extension $coverArtUrl
+		if (-not $fileExtension) {
 			Write-Warning "${albumName}: Album cover art does not have a file extension, defaulting to .jpg"
-			$fileextension = '.jpg'
+			$fileExtension = '.jpg'
 		}
 
-		$filename = 'cover' + $fileextension
+		$filename = 'cover' + $fileExtension
 		$coverArtFile = Join-Path $pwd $albumName $filename
 		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $coverArtFile $coverArtUrl > $null
 	}
