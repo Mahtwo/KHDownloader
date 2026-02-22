@@ -199,6 +199,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		}
 		if (-not $formatAvailable) {
 			$format = 'MP3'
+			Write-Warning "${albumName}: Format $format not available, fallbacking to MP3"
 		}
 	}
 
