@@ -143,14 +143,14 @@ param (
 )
 
 ## FORMATTING ARGUMENTS
-if ($null -eq $url.Scheme) {
-	$url = "https://$url"
+if ($null -eq $Url.Scheme) {
+	$Url = "https://$Url"
 }
-$format = $format.ToUpperInvariant() # No null check needed as a string cannot be null
+$Format = $Format.ToUpperInvariant() # No null check needed as a string cannot be null
 
 ## GET ALBUM NAME
 # Main page HTML file already exist because of argument URL ValidateScript
-$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($url.Segments[-1] + '.html')
+$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
 $mainPage = Get-Content -Raw -LiteralPath $mainPageFile
 $MainPageHtml = New-Object -Com 'HTMLFile'
 $MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
@@ -158,7 +158,7 @@ $MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
 $albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
 
 ## GET ALL SONGS PAGE URL
-$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($url.Segments[-1] + '.khd')
+$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.khd')
 if (-not (Test-Path -PathType Leaf $tempFile)) {
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Getting each song page URL' -PercentComplete 0
 
@@ -170,7 +170,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	for ($index = 0; $index -lt $pDSLength; $index++) {
 		Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
-		$songsURL[$index] = $songPageURL -replace '^about:', $url.GetLeftPart([System.UriPartial]::Authority)
+		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
 	}
 
 	# Create file containing all songs page URLs
@@ -187,7 +187,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
-	if ($format -ne 'MP3') {
+	if ($Format -ne 'MP3') {
 		# Check if the format is available for this album
 		$formatAvailable = $false
 		$tableHeader = $MainPageHtml.getElementById('songlist_header').children
@@ -198,8 +198,8 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			}
 		}
 		if (-not $formatAvailable) {
-			$format = 'MP3'
-			Write-Warning "${albumName}: Format $format not available, fallbacking to MP3"
+			Write-Warning "${albumName}: Format $Format not available, fallbacking to MP3"
+			$Format = 'MP3'
 		}
 	}
 
@@ -221,7 +221,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			# Check if format is available (the format may not be available for every song)
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith($Using:format)) {
+				if ($songDownloadLink.innerText.EndsWith($Using:Format)) {
 					$songsURL[$_] = $songDownloadLink.parentElement.href
 					return
 				}
@@ -234,7 +234,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 					$songsURL[$_] = $href
 					# Prettify filename without extension from URL for warning
 					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-					Write-Warning "${Using:albumName}: Format $Using:format not found for $filename, fallbacking to MP3"
+					Write-Warning "${Using:albumName}: Format $Using:Format not found for $filename, fallbacking to MP3"
 				}
 			}
 		}
@@ -275,8 +275,8 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		}
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
-} elseif ($format -ne 'MP3') {
-	Write-Warning "${albumName}: All songs URL are present, format $format will not be checked"
+} elseif ($Format -ne 'MP3') {
+	Write-Warning "${albumName}: All songs URL are present, format $Format will not be checked"
 }
 
 ## PREPARE FILENAMES FROM SONGS URL
