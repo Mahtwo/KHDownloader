@@ -18,6 +18,9 @@ URL of the KHInsider album to download
 Audio format to prioritize (like FLAC, M4A, etc.), if not available will fallback to MP3.
 This parameter supports tab completion based on the value of the URL parameter.
 
+.PARAMETER NoCoverArt
+Disables downloading the album cover art.
+
 .INPUTS
 None. You can't pipe objects to khd.ps1.
 
@@ -133,7 +136,10 @@ param (
 			}
 		}
 	)]
-	[string]$Format = 'MP3'
+	[string]$Format = 'MP3',
+
+	[Alias('nca')]
+	[switch]$NoCoverArt
 )
 
 ## FORMATTING ARGUMENTS
@@ -301,6 +307,26 @@ for ($index = 0; $index -lt $sULength; $index++) {
 		# Necessary to exit on Invoke-WebRequest error, otherwise those errors don't end the script
 		# The try-catch can be removed (keep only the Invoke-WebRequest command) when/if https://github.com/PowerShell/PowerShell/issues/21345 is fixed
 		throw $_
+	}
+}
+
+## DOWNLOADING ALBUM COVER ART
+if (-not $NoCoverArt) {
+	Write-Progress -Id 23 -Activity "Downloading album $albumName" -Status 'Downloading album cover art' -PercentComplete 99
+
+	# Use first cover art found
+	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
+	$coverArtUrl = $MainPageHtml.GetElementsByClassName('albumImage')[0].GetElementsByTagName('a')[0].href
+	if ($coverArtUrl) {
+		$fileextension = Split-Path -Extension $coverArtUrl
+		if (-not $fileextension) {
+			Write-Warning "${albumName}: Album cover art does not have a file extension, defaulting to .jpg"
+			$fileextension = '.jpg'
+		}
+
+		$filename = 'cover' + $fileextension
+		$coverArtFile = Join-Path $pwd $albumName $filename
+		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $coverArtFile $coverArtUrl > $null
 	}
 }
 
