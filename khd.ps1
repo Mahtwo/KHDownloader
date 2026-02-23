@@ -102,10 +102,11 @@ param (
 				return
 			}
 
-			if ($null -eq $fakeBoundParameters['Url'].Scheme) {
-				[uri]$argumentCompleterUrl = "https://$($fakeBoundParameters['Url'])"
-			} else {
+			# fakeBoundParameters values are of primitive types (string int etc.), so we cannot use Scheme property
+			if ($fakeBoundParameters['Url'] -match '^https?') {
 				[uri]$argumentCompleterUrl = $fakeBoundParameters['Url']
+			} else {
+				[uri]$argumentCompleterUrl = "https://$($fakeBoundParameters['Url'])"
 			}
 
 			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($argumentCompleterUrl.Segments[-1] + '.html')
