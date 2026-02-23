@@ -67,16 +67,17 @@ param (
 				[uri]$validateScriptUrl = $_
 			}
 
+			# Check internet by trying to connect to the URL
+			if (-not (Test-Connection $validateScriptUrl.Host -Count 1 -Quiet -ErrorAction SilentlyContinue)) {
+				throw "$($validateScriptUrl.Host) is unreachable, check your internet connection."
+			}
+
 			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($validateScriptUrl.Segments[-1] + '.html')
 			# Skip check if main page HTML file already exist
 			if (Test-Path -PathType Leaf $mainPageFile) {
 				return $true
 			}
 
-			# Check internet by trying to connect to the URL
-			if (-not (Test-Connection $validateScriptUrl.Host -Count 1 -Quiet -ErrorAction SilentlyContinue)) {
-				throw "$($validateScriptUrl.Host) is unreachable, check your internet connection."
-			}
 
 			# The file will only be created after downlading it entirely
 			$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $validateScriptUrl).Content
