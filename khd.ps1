@@ -62,17 +62,17 @@ param (
 			}
 
 			if ($null -eq $_.Scheme) {
-				[uri]$validateScriptUrl = "https://$_"
+				[uri]$url = "https://$_"
 			} else {
-				[uri]$validateScriptUrl = $_
+				[uri]$url = $_
 			}
 
 			# Check internet by trying to connect to the URL
-			if (-not (Test-Connection $validateScriptUrl.Host -Count 1 -Quiet -ErrorAction SilentlyContinue)) {
-				throw "$($validateScriptUrl.Host) is unreachable, check your internet connection."
+			if (-not (Test-Connection $url.Host -Count 1 -Quiet -ErrorAction SilentlyContinue)) {
+				throw "$($url.Host) is unreachable, check your internet connection."
 			}
 
-			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($validateScriptUrl.Segments[-1] + '.html')
+			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($url.Segments[-1] + '.html')
 			# Skip check if main page HTML file already exist
 			if (Test-Path -PathType Leaf $mainPageFile) {
 				return $true
@@ -80,7 +80,7 @@ param (
 
 
 			# The file will only be created after downlading it entirely
-			$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $validateScriptUrl).Content
+			$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $url).Content
 			# Check if the URL is a valid album URL
 			if ($mainPage -match '<title>\s*Error\s*<\/title>') {
 				Remove-Item -LiteralPath $mainPageFile
@@ -105,17 +105,17 @@ param (
 
 			# fakeBoundParameters values are of primitive types (string int etc.), so we cannot use Scheme property
 			if ($fakeBoundParameters['Url'] -match '^https?') {
-				[uri]$argumentCompleterUrl = $fakeBoundParameters['Url']
+				[uri]$url = $fakeBoundParameters['Url']
 			} else {
-				[uri]$argumentCompleterUrl = "https://$($fakeBoundParameters['Url'])"
+				[uri]$url = "https://$($fakeBoundParameters['Url'])"
 			}
 
-			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($argumentCompleterUrl.Segments[-1] + '.html')
+			$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($url.Segments[-1] + '.html')
 			if (Test-Path -PathType Leaf $mainPageFile) {
 				$mainPage = Get-Content -Raw -LiteralPath $mainPageFile
 			} else {
 				# Will silently fail if no internet connection (which is what we want)
-				$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $argumentCompleterUrl).Content
+				$mainPage = (Invoke-WebRequest -PassThru -ErrorAction Stop -OutFile $mainPageFile $url).Content
 			}
 			# Check if the URL is a valid album URL
 			if ($mainPage -match '<title>\s*Error\s*<\/title>') {
