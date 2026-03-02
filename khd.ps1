@@ -284,16 +284,17 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 ## PREPARE FILENAMES FROM SONGS URL
 $sULength = $songsURL.Length
 $songsFile = [string[]]::new($sULength)
+$albumDirectory = Join-Path $pwd $albumName
 for ($index = 0; $index -lt $sULength; $index++) {
 	$songDownloadURL = $songsURL[$index]
 	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-	$filepath = Join-Path $pwd $albumName $filename
+	$filepath = Join-Path $albumDirectory $filename
 	$songsFile[$index] = $filepath
 }
 
 ## DOWNLOADING EACH SONG
 if (-not (Test-Path -PathType Container $albumName)) {
-	New-Item -ItemType Directory $albumName > $null
+	New-Item -ItemType Directory $albumDirectory > $null
 }
 for ($index = 0; $index -lt $sULength; $index++) {
 	# Skip to the last downloaded file as it may only be partially downloaded
@@ -328,7 +329,7 @@ if (-not $NoCoverArt) {
 		}
 
 		$filename = 'cover' + $fileExtension
-		$coverArtFile = Join-Path $pwd $albumName $filename
+		$coverArtFile = Join-Path $albumDirectory $filename
 		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $coverArtFile $coverArtUrl > $null
 	}
 }
