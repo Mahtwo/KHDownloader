@@ -16,6 +16,7 @@
 	"powershell.cwd": ".",
 	"powershell.scriptAnalysis.enable": true,
 	"powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+	"powershell.pester.useLegacyCodeLens": false,
 
 	// Copied from .editorconfig, use .editorconfig settings if different
 	"editor.insertSpaces": false,

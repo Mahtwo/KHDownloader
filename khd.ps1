@@ -176,9 +176,11 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	}
 
 	# Create file containing all songs page URLs
-	foreach ($songPageURL in $songsURL) {
-		Add-Content -LiteralPath $tempFile -Value $songPageURL
-	}
+	# There is a weird bug with Add-Content -LiteralPath (but not -Path or Out-File -LiteralPath) where
+	# 	if the path points to a file that does not exist AND the path use a PSDrive with a root that does not end with
+	# 	a trailing path separator (which is the case with Pester TestDrive), Add-Content does not create the file
+	New-Item -Path $tempFile -ItemType File > $null
+	Add-Content -LiteralPath $tempFile -Value $songsURL
 
 	Write-Progress -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
 } else {
@@ -264,8 +266,9 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	finally {
 		# Script may have interrupted before creating the job
 		if ($getSongsDownloadURLJob) {
-			$getSongsDownloadURLJob | Stop-Job
-		} else {
+			$getSongsDownloadURLJob | Stop-Job -PassThru | Receive-Job -AutoRemoveJob -Wait
+		}
+		if (-not $totalCount) {
 			$totalCount = 1 # Avoids a division by zero
 		}
 		Write-Progress -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
