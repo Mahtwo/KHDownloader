@@ -284,7 +284,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 ## PREPARE FILENAMES FROM SONGS URL
 $sULength = $songsURL.Length
 $songsFile = [string[]]::new($sULength)
-$albumDirectory = Join-Path $pwd $albumName
+$albumDirectory = Join-Path $PWD $albumName
 for ($index = 0; $index -lt $sULength; $index++) {
 	$songDownloadURL = $songsURL[$index]
 	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
