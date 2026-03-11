@@ -209,7 +209,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 	$sULength = $songsURL.Length
 	try {
-		# We assume more CPU cores means more RAM. -ThrottleLimit has diminishing returns anyway
+		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
 		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([Environment]::ProcessorCount * 5) -Parallel {
 			$songsURL = $Using:songsURL # No need for thread safe array since each runspace only modifiy their index
 			$songPageURL = $songsURL[$_]
@@ -296,7 +296,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 }
 
 ## DOWNLOADING EACH SONG
-if (-not (Test-Path -PathType Container $albumName)) {
+if (-not (Test-Path -PathType Container $albumDirectory)) {
 	New-Item -ItemType Directory $albumDirectory > $null
 }
 for ($index = 0; $index -lt $sULength; $index++) {
