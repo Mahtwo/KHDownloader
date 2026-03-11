@@ -11,6 +11,8 @@ BeforeAll {
 	$albumUrl = 'https://downloads.khinsider.com/game-soundtracks/album/powershell-and-pester-racing-original-soundtrack'
 	$_ProgressPreference = $ProgressPreference
 	$ProgressPreference = 'SilentlyContinue'
+	$_ErrorActionPreference = $ErrorActionPreference
+	$ErrorActionPreference = 'Stop'
 
 	# Mock internet access to local file system
 	Mock Invoke-WebRequest {
@@ -128,6 +130,7 @@ BeforeAll {
 }
 AfterAll {
 	$ProgressPreference = $_ProgressPreference
+	$ErrorActionPreference = $_ErrorActionPreference
 }
 
 Describe 'khd.ps1' {
@@ -167,6 +170,7 @@ Describe 'khd.ps1' {
 		It 'No album should throw an album does not exist error' {
 			$noSuchAlbumHTML = Get-Content -Raw (& $cmdlets['Join-Path'] $PSScriptRoot 'web' 'error no album.html')
 			Mock Invoke-WebRequest { return @{ Content = $noSuchAlbumHTML } }
+			Mock Remove-Item {}
 			{ & khd -Url $albumUrl } | Should -Throw '*album*does not exist*'
 		}
 	}
