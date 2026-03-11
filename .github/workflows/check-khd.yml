@@ -1,25 +1,50 @@
 name: Check khd
 
 on:
-  # Runs when khd.ps1 or PSScriptAnalyzerSettings.psd1 are changed
+  # Runs when khd.ps1, PSScriptAnalyzerSettings.psd1, or anything inside pester folder are changed
   push:
     branches: '**' # Don't run when pushing tags
     paths:
       - 'khd.ps1'
       - 'PSScriptAnalyzerSettings.psd1'
+      - 'pester/**'
   pull_request:
     paths:
       - 'khd.ps1'
       - 'PSScriptAnalyzerSettings.psd1'
+      - 'pester/**'
 
 jobs:
-  check-khd:
+  psscriptanalyzer-khd:
     uses: ./.github/workflows/psscriptanalyzer.yml
     with:
       script-path: ./khd.ps1
 
+  pester-khd:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout khd.ps1 and pester
+      uses: actions/checkout@v6
+      with :
+        # Sparse checkouts only needs one *
+        sparse-checkout: |
+          khd.ps1
+          pester/*
+        sparse-checkout-cone-mode: false
+
+    - name: Run Pester
+      shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
+      run: |
+        $config = New-PesterConfiguration
+        $config.Run.Path = './pester/khd.Tests.ps1'
+        $config.Run.Exit = $true
+        $config.Output.Verbosity = 'Detailed' # List all tests and Describe/Context groups
+        $config.Output.CIFormat = 'GithubActions'
+        Invoke-Pester -Configuration $config
+
   call-refresh-latest-release:
-    needs: check-khd
+    needs: [psscriptanalyzer-khd, pester-khd]
     # Don't refresh release on pull request or not main branch
     if: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     permissions:
