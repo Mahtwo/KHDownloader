@@ -18,11 +18,12 @@ jobs:
   psscriptanalyzer-khd:
     uses: ./.github/workflows/psscriptanalyzer.yml
     with:
-      script-path: ./khd.ps1
+      script-path: khd.ps1
 
   pester-khd:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    # TODO : When khd.ps1 becomes compatible on Linux, use matrix Windows Linux Mac
+    runs-on: windows-latest
     steps:
     - name: Checkout khd.ps1 and pester
       uses: actions/checkout@v6
