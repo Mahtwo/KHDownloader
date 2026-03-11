@@ -28,7 +28,7 @@ jobs:
         # khd.ps1 is already checked with PSScriptAnalyzer in the check khd workflow
         filters: |
           psscriptanalyzer_changed:
-            - added|modified: '**.ps1'
+            - added|modified: '**.ps?(d|m)1'
             - '!khd.ps1'
           psscriptanalyzer_all:
             - 'PSScriptAnalyzerSettings.psd1'
@@ -41,7 +41,7 @@ jobs:
       id: psscriptanalyzer-all-files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' }}
       # khd.ps1 is already checked with PSScriptAnalyzer in the check khd workflow
-      run: echo "psscriptanalyzer_all_files=$(git ls-files --full-name -- ':/*.ps1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
+      run: echo "psscriptanalyzer_all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
 
   editorconfig:
     timeout-minutes: 5
