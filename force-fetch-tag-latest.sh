@@ -1,0 +1,1 @@
+force-fetch-tag-latest.bat
