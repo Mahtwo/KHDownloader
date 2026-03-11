@@ -21,7 +21,7 @@ jobs:
       script-path: khd.ps1
 
   pester-khd:
-    timeout-minutes: 10
+    timeout-minutes: 5
     # TODO : When khd.ps1 becomes compatible on Linux, use matrix Windows Linux Mac
     runs-on: windows-latest
     steps:
