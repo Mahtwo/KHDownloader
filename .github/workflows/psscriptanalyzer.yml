@@ -28,7 +28,12 @@ jobs:
       shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
       # Cannot capture summary from -ReportSummary so we run pwsh in another process and capture its output
       # Output can be of type string or array depending on number of lines (string if 0 issues)
+      # When Invoke-ScriptAnalyzer is called without a valid path, it does not count as a terminating error
       run: |
+        if (-not (Test-Path '${{ inputs.script-path }}')) {
+          Write-Output "::error title=PSScriptAnalyzer::Invoke-ScriptAnalyzer: Cannot find path '${{ inputs.script-path }}' because it does not exist."
+          exit -1
+        }
         $command = @'
           $issues = Invoke-ScriptAnalyzer -Path '${{ inputs.script-path }}' -Settings './PSScriptAnalyzerSettings.psd1' -ReportSummary
           foreach ($issue in $issues) {
