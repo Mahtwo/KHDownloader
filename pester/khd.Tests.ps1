@@ -1,6 +1,9 @@
+#region Header
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Does not work with (Pester) script blocks')]
 param() # Necessary for the PSScriptAnalyzer suppress rules above
+#endregion Header
 
+#region Setup
 BeforeAll {
 	$writeDebugMock = $____Pester.Configuration.Output.Verbosity.Value -eq 'Diagnostic' -or $____Pester.Configuration.Debug.WriteDebugMessages.Value -or $DebugPreference -in 'Inquire', 'Continue'
 	$cmdlets = @{}
@@ -14,6 +17,7 @@ BeforeAll {
 	$_ErrorActionPreference = $ErrorActionPreference
 	$ErrorActionPreference = 'Stop'
 
+	#region Setup - Mocks
 	# Mock internet access to local file system
 	Mock Invoke-WebRequest {
 		$path = & $cmdlets['Join-Path'] $PSScriptRoot 'web' $Uri.Host $Uri.AbsolutePath
@@ -127,13 +131,16 @@ BeforeAll {
 		# If it ever becomes necessary to fix this, it might be necessary to mock the Where-Object
 		return & $cmdlets['ForEach-Object'] @PesterBoundParameters
 	}
+	#endregion Setup - Mocks
 }
 AfterAll {
 	$ProgressPreference = $_ProgressPreference
 	$ErrorActionPreference = $_ErrorActionPreference
 }
+#endregion Setup
 
 Describe 'khd.ps1' {
+	#region Parameters validation
 	Context 'Parameters validation' {
 		BeforeAll {
 			# Mocking keeps the param() block while removing rest of code, which is useful for testing parameters
@@ -174,8 +181,11 @@ Describe 'khd.ps1' {
 			{ & khd -Url $albumUrl } | Should -Throw '*album*does not exist*'
 		}
 	}
+	#endregion Parameters validation
 
+	#region Script execution
 	Context 'Script execution' {
+		#region Script execution - Setup
 		BeforeAll {
 			$downloadAlbumDirectory = Join-Path 'TestDrive:' 'PowerShell & Pester Racing Original Soundtrack'
 			$sourceDirectory = & $cmdlets['Join-Path'] $PSScriptRoot 'web' 'lambda.vgmtreasurechest.com' 'soundtracks' 'powershell-and-pester-racing-original-soundtrack'
@@ -213,7 +223,9 @@ Describe 'khd.ps1' {
 		AfterAll {
 			Remove-Variable -Name testIndex -Scope Script
 		}
+		#endregion Script execution - Setup
 
+		#region Script execution - Full
 		Context 'Full run' {
 			It 'Standard script execution should download mp3 songs and album cover art' {
 				# & $khdFile -Url $albumUrl on its own would also fail the test if throwing, but it would only
@@ -251,7 +263,9 @@ Describe 'khd.ps1' {
 				Test-DownloadedFilesHash $sourceMp3Files
 			}
 		}
+		#endregion Script execution - Full
 
+		#region Script execution - Resume
 		Context 'Resume run' {
 			BeforeAll {
 				$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) 'powershell-and-pester-racing-original-soundtrack.khd'
@@ -323,5 +337,7 @@ Describe 'khd.ps1' {
 				Test-DownloadedFilesHash $sourceMp3Files
 			}
 		}
+		#endregion Script execution - Resume
 	}
+	#endregion Script execution
 }

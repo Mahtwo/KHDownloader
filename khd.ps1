@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Original author and source code: https://github.com/Mahtwo/KHDownloader
 
+#region Header
 <#
 .SYNOPSIS
 Downloads an album from KHInsider Video Game Music with robust resume functionality.
@@ -52,7 +53,9 @@ https://downloads.khinsider.com/
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'commandName', Justification = 'variable not used in ArgumentCompleter of formats')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'parameterName', Justification = 'variable not used in ArgumentCompleter of formats')]
 # TODO : For Linux compatibility, New-Object -Com 'HTMLFile' will need to be replaced with an Install-Module/#Requires -Module)
+#endregion Header
 
+#region Parameters
 param (
 	[Parameter(Position = 0, Mandatory, HelpMessage = 'URL of the album to download (like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album)')]
 	[Alias('u')]
@@ -144,13 +147,14 @@ param (
 	[switch]$NoCoverArt
 )
 
-## FORMATTING ARGUMENTS
+# Formatting arguments
 if ($null -eq $Url.Scheme) {
 	$Url = "https://$Url"
 }
 $Format = $Format.ToUpperInvariant() # No null check needed as a string cannot be null
+#endregion Parameters
 
-## GET ALBUM NAME
+#region Get album name
 # Main page HTML file already exist because of argument URL ValidateScript
 $mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
 $mainPage = Get-Content -Raw -LiteralPath $mainPageFile
@@ -158,8 +162,9 @@ $MainPageHtml = New-Object -Com 'HTMLFile'
 $MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
 # Replace illegal path characters and consecutive spaces to one space
 $albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
+#endregion Get album name
 
-## GET ALL SONGS PAGE URL
+#region Get songs page URL
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.khd')
 if (-not (Test-Path -PathType Leaf $tempFile)) {
 	Write-Progress -Activity "Downloading album $albumName" -Status 'Getting each song page URL' -PercentComplete 0
@@ -186,8 +191,9 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 } else {
 	$songsURL = Get-Content -LiteralPath $tempFile
 }
+#endregion Get songs page URL
 
-## CONVERT ALL SONGS PAGE URL TO SONGS URL
+#region Convert to songs URL
 if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/album/')) {
 	Write-Progress -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
@@ -281,8 +287,9 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 } elseif ($Format -ne 'MP3') {
 	Write-Warning "${albumName}: All songs URL are present, format $Format will not be checked"
 }
+#endregion Convert to songs URL
 
-## PREPARE FILENAMES FROM SONGS URL
+#region Prepare filenames
 $sULength = $songsURL.Length
 $songsFile = [string[]]::new($sULength)
 $albumDirectory = Join-Path $PWD $albumName
@@ -292,8 +299,9 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	$filepath = Join-Path $albumDirectory $filename
 	$songsFile[$index] = $filepath
 }
+#endregion Prepare filenames
 
-## DOWNLOADING EACH SONG
+#region Download songs
 if (-not (Test-Path -PathType Container $albumDirectory)) {
 	New-Item -ItemType Directory $albumDirectory > $null
 }
@@ -314,8 +322,9 @@ for ($index = 0; $index -lt $sULength; $index++) {
 		throw $_
 	}
 }
+#endregion Download songs
 
-## DOWNLOADING ALBUM COVER ART
+#region Download cover art
 if (-not $NoCoverArt) {
 	Write-Progress -Activity "Downloading album $albumName" -Status 'Downloading album cover art' -PercentComplete 99
 
@@ -334,8 +343,9 @@ if (-not $NoCoverArt) {
 		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $coverArtFile $coverArtUrl > $null
 	}
 }
+#endregion Download cover art
 
-## CLEAN-UP
+#region Clean-up
 Remove-Item -LiteralPath $mainPageFile, $tempFile
 # [System.Environment]::UserInteractive is false if there is no user interface on Windows, always true on other OSs
 if ([System.Environment]::UserInteractive -and $ProgressPreference -notin 'SilentlyContinue', 'Ignore') {
@@ -346,3 +356,4 @@ if ([System.Environment]::UserInteractive -and $ProgressPreference -notin 'Silen
 	Start-Sleep 1
 }
 Write-Progress -Completed
+#endregion Clean-up

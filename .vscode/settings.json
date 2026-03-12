@@ -27,6 +27,10 @@
 	"[json][jsonc]": {
 		"files.insertFinalNewline": false
 	},
+	"[powershell]": {
+		"editor.minimap.scale": 2,
+		"editor.minimap.sectionHeaderFontSize": 12,
+	},
 	"[yaml]": {
 		"editor.insertSpaces": true,
 		"editor.tabSize": 2,
