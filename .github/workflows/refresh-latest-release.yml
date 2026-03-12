@@ -51,4 +51,5 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       # Will automatically create the tag
-      run: gh release create latest --latest --title "Latest" --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
+      # When the tag doesn't already exist, release will be a draft by default
+      run: gh release create latest --latest --title "Latest" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
