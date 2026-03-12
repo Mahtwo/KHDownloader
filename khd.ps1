@@ -274,10 +274,8 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		Write-Progress -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
-		# $songURL can either be a download URL, or a remaining page URL if the script was interrupted
-		foreach ($songURL in $songsURL) {
-			Add-Content -LiteralPath $tempFileTemp -Value $songURL
-		}
+		# $songsURL may have a mix of download URLs and page URLs if the script was interrupted
+		Add-Content -LiteralPath $tempFileTemp -Value $songsURL
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
 } elseif ($Format -ne 'MP3') {
