@@ -28,10 +28,11 @@ jobs:
     - name: Checkout khd.ps1 and pester
       uses: actions/checkout@v6
       with :
-        # cone-mode false is much slower (~6 seconds) here
-        # Root files are always added on default cone-mode true
+        # Sparse checkouts only needs one *
         sparse-checkout: |
-          pester
+          khd.ps1
+          pester/*
+        sparse-checkout-cone-mode: false
 
     - name: Run Pester
       shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
