@@ -12,8 +12,8 @@ specified by the user. If the script stops for any reason, it will resume where
 it previously was when run again with the same album.
 
 .PARAMETER Url
-URL of the KHInsider album to download
-(like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album).
+URL of the KHInsider album to download,
+like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album.
 
 .PARAMETER Format
 Audio format to prioritize (like FLAC, M4A, etc.), if not available will fallback to MP3.
@@ -57,7 +57,7 @@ https://downloads.khinsider.com/
 
 #region Parameters
 param (
-	[Parameter(Position = 0, Mandatory, HelpMessage = 'URL of the album to download (like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album)')]
+	[Parameter(Position = 0, Mandatory, HelpMessage = 'URL of the album to download, like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album')]
 	[Alias('u')]
 	[ValidateScript({
 			if ($_ -notmatch '^(https?://)?downloads.khinsider.com/game-soundtracks/album/[^/]+$') {
@@ -95,7 +95,7 @@ param (
 	)]
 	[uri]$Url,
 
-	[Parameter(Position = 1)]
+	[Parameter(Position = 1, HelpMessage = 'Format to prioritize (FLAC, M4A, etc.), default/fallback is MP3. Can TAB complete based on -Url')]
 	[Alias('f')]
 	[ArgumentCompletions('')] # Disable suggesting files from working directory when ArgumentCompleter returns nothing
 	# Returning MP3 is technically useless but it's helpful for users not knowing MP3 is always available
