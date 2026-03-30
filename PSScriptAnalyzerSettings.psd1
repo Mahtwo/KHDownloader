@@ -46,6 +46,8 @@
 		'PSUseCmdletCorrectly',
 		'PSUseCompatibleSyntax',
 		'PSUseConsistentIndentation',
+		'PSUseConsistentParameterSetName',
+		'PSUseConsistentParametersKind',
 		'PSUseConsistentWhitespace',
 		'PSUseCorrectCasing',
 		'PSUseDeclaredVarsMoreThanAssignments',
@@ -54,6 +56,7 @@
 		'PSUseProcessBlockForPipelineCommand',
 		'PSUsePSCredentialType',
 		'PSUseShouldProcessForStateChangingFunctions',
+		'PSUseSingleValueFromPipelineParameter',
 		'PSUseSingularNouns',
 		'PSUseSupportsShouldProcess',
 		'PSUseToExportFieldsInManifest',
@@ -63,8 +66,7 @@
 
 	Rules        = @{
 		PSAlignAssignmentStatement       = @{
-			Enable         = $true
-			CheckHashtable = $true
+			Enable = $true
 		}
 
 		PSAvoidUsingPositionalParameters = @{
@@ -91,6 +93,16 @@
 		PSUseConsistentIndentation       = @{
 			Enable = $true
 			Kind   = 'tab'
+		}
+
+		PSUseConsistentParameterSetName  = @{
+			Enable = $true
+		}
+
+		# https://github.com/PowerShell/PSScriptAnalyzer/blob/9b55ac29a91e6de07defa93bdf9f417b1468f66b/Tests/Rules/UseConsistentParametersKind.Tests.ps1#L9-L12
+		PSUseConsistentParametersKind    = @{
+			Enable         = $true
+			ParametersKind = 'ParamBlock'
 		}
 
 		PSUseConsistentWhitespace        = @{
