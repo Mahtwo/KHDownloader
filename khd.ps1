@@ -164,10 +164,43 @@ $MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
 $albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
 #endregion Get album name
 
+#region Helpers
+function Write-ProgressHelper {
+	param(
+		[string]$Status,
+		[int]$PercentComplete,
+		[switch]$Completed,
+		[switch]$WaitUpdate
+	)
+
+	if ($WaitUpdate) {
+		# Write-Progress only updates every 200ms and does not update to the last "missed" Write-Progress even after 200ms
+		if (-not $timerWriteProgressHelper) {
+			$timerWriteProgressHelper = [System.Threading.Tasks.Task]::Delay(2000)
+		}
+		$timerWriteProgressHelper.Wait()
+	}
+	$timerWriteProgressHelper = [System.Threading.Tasks.Task]::Delay(2000)
+	# Cannot combine -Status $Status and -Completed:$Completed because it would throw when Status is not specified
+	if ($Completed) {
+		Write-Progress -Completed
+	} else {
+		Write-Progress -Activity "Downloading album $albumName" -Status $Status -PercentComplete $PercentComplete
+	}
+}
+function Write-WarningHelper {
+	param(
+		[ValidateNotNull()]
+		[string]$Message
+	)
+	Write-Warning "${albumName}: $Message"
+}
+#endregion Helpers
+
 #region Get songs page URL
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.khd')
 if (-not (Test-Path -PathType Leaf $tempFile)) {
-	Write-Progress -Activity "Downloading album $albumName" -Status 'Getting each song page URL' -PercentComplete 0
+	Write-ProgressHelper -Status 'Getting each song page URL' -PercentComplete 0
 
 	# Get page URL of each song
 	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
@@ -175,7 +208,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
-		Write-Progress -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
+		Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
 		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
 	}
@@ -187,15 +220,15 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	New-Item -Path $tempFile -ItemType File > $null
 	Add-Content -LiteralPath $tempFile -Value $songsURL
 
-	Write-Progress -Activity "Downloading album $albumName" -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
+	Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete 5
 } else {
 	$songsURL = Get-Content -LiteralPath $tempFile
 }
 #endregion Get songs page URL
 
-#region Convert to songs URL
+#region Get songs download URL
 if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/album/')) {
-	Write-Progress -Activity "Downloading album $albumName" -Status 'Converting each song page URL to download URL' -PercentComplete 5
+	Write-ProgressHelper -Status 'Converting each song page URL to download URL' -PercentComplete 5
 
 	if ($Format -ne 'MP3') {
 		# Check if the format is available for this album
@@ -208,18 +241,29 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			}
 		}
 		if (-not $formatAvailable) {
-			Write-Warning "${albumName}: Format $Format not available, fallbacking to MP3"
+			Write-WarningHelper "Format $Format not available, fallbacking to MP3"
 			$Format = 'MP3'
 		}
 	}
 
 	$sULength = $songsURL.Length
 	try {
+		# Put helper functions in variable to use them inside the job ($Using:Function:... does not work)
+		$jobFunctions = Get-ChildItem -Path Function: | Where-Object -Property Name -In -Value Write-WarningHelper | Select-Object -Property Name, Definition
+
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
 		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([Environment]::ProcessorCount * 5) -Parallel {
+			#region Get songs download URL - Job
+			#region Get songs download URL - Job setup
 			$songsURL = $Using:songsURL # No need for thread safe array since each runspace only modifiy their index
-			$songPageURL = $songsURL[$_]
+			$albumName = $Using:albumName # Used by Write-WarningHelper
+			$Format = $Using:Format
+			foreach ($jobFunction in $Using:jobFunctions) {
+				New-Item -Path Function: -Name $jobFunction.Name -Value $jobFunction.Definition
+			}
+			#endregion Get songs download URL - Job setup
 
+			$songPageURL = $songsURL[$_]
 			try {
 				$SongPage = (Invoke-WebRequest -ErrorAction Stop $songPageURL).Content
 			} catch {
@@ -231,7 +275,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			# Check if format is available (the format may not be available for every song)
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith($Using:Format)) {
+				if ($songDownloadLink.innerText.EndsWith($Format)) {
 					$songsURL[$_] = $songDownloadLink.parentElement.href
 					return
 				}
@@ -244,9 +288,10 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 					$songsURL[$_] = $href
 					# Prettify filename without extension from URL for warning
 					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
-					Write-Warning "${Using:albumName}: Format $Using:Format not found for $filename, fallbacking to MP3"
+					Write-WarningHelper "Format $Format not found for $filename, fallbacking to MP3"
 				}
 			}
+			#endregion Get songs download URL - Job
 		}
 		$remainingChildJobs = $getSongsDownloadURLJob.ChildJobs
 		$totalCount = $remainingChildJobs.Count
@@ -261,7 +306,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			$remainingChildJobs = $remainingChildJobs | Where-Object -Property State -In -Value 'NotStarted', 'Running'
 			$doneCount = $totalCount - $remainingChildJobs.Count
-			Write-Progress -Activity "Downloading album $albumName" -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+			Write-ProgressHelper -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		}
 	} catch {
 		# Necessary to exit script on all errors, otherwise some errors (notably from Invoke-WebRequest) continue after finally
@@ -277,7 +322,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		if (-not $totalCount) {
 			$totalCount = 1 # Avoids a division by zero
 		}
-		Write-Progress -Activity "Downloading album $albumName" -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+		Write-ProgressHelper -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
 		# $songsURL may have a mix of download URLs and page URLs if the script was interrupted
@@ -285,9 +330,9 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		Move-Item -Force -LiteralPath $tempFileTemp -Destination $tempFile
 	}
 } elseif ($Format -ne 'MP3') {
-	Write-Warning "${albumName}: All songs URL are present, format $Format will not be checked"
+	Write-WarningHelper "All songs URL are present, format $Format will not be checked"
 }
-#endregion Convert to songs URL
+#endregion Get songs download URL
 
 #region Prepare filenames
 $sULength = $songsURL.Length
@@ -310,7 +355,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	if ($index + 1 -ne $sULength -and (Test-Path -PathType Leaf $songsFile[$index + 1])) {
 		continue
 	}
-	Write-Progress -Activity "Downloading album $albumName" -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
+	Write-ProgressHelper -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
 
 	$songDownloadURL = $songsURL[$index]
 	$songFile = $songsFile[$index]
@@ -326,7 +371,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 
 #region Download cover art
 if (-not $NoCoverArt) {
-	Write-Progress -Activity "Downloading album $albumName" -Status 'Downloading album cover art' -PercentComplete 99
+	Write-ProgressHelper -Status 'Downloading album cover art' -PercentComplete 99
 
 	# Use first cover art found
 	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
@@ -334,7 +379,7 @@ if (-not $NoCoverArt) {
 	if ($coverArtUrl) {
 		$fileExtension = Split-Path -Extension $coverArtUrl
 		if (-not $fileExtension) {
-			Write-Warning "${albumName}: Album cover art does not have a file extension, defaulting to .jpg"
+			Write-WarningHelper 'Album cover art does not have a file extension, defaulting to .jpg'
 			$fileExtension = '.jpg'
 		}
 
@@ -349,11 +394,9 @@ if (-not $NoCoverArt) {
 Remove-Item -LiteralPath $mainPageFile, $tempFile
 # [System.Environment]::UserInteractive is false if there is no user interface on Windows, always true on other OSs
 if ([System.Environment]::UserInteractive -and $ProgressPreference -notin 'SilentlyContinue', 'Ignore') {
+	Write-ProgressHelper -Status 'Done!' -PercentComplete 100 -WaitUpdate
 	# Add a delay to show 100% complete bar for better UX
-	# Write-Progress only update every 200ms and does not update to the last "missed" Write-Progress even after 200ms
-	Start-Sleep -Milliseconds 200
-	Write-Progress -Activity "Downloading album $albumName" -Status 'Done!' -PercentComplete 100
 	Start-Sleep 1
 }
-Write-Progress -Completed
+Write-ProgressHelper -Completed
 #endregion Clean-up
