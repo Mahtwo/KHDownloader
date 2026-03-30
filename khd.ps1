@@ -249,7 +249,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	$sULength = $songsURL.Length
 	try {
 		# Put helper functions in variable to use them inside the job ($Using:Function:... does not work)
-		$jobFunctions = Get-ChildItem -Path Function: | Where-Object -Property Name -In -Value Write-WarningHelper | Select-Object -Property Name, Definition
+		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper | Select-Object -Property Name, Definition
 
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
 		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([Environment]::ProcessorCount * 5) -Parallel {
@@ -300,11 +300,11 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			$getSongsDownloadURLJob | Receive-Job
 
 			# Check for any failed job
-			if ($remainingChildJobs | Where-Object -Property State -EQ -Value 'Failed' | Select-Object -First 1) {
+			if ($remainingChildJobs | Where-Object State -EQ 'Failed' | Select-Object -First 1) {
 				return
 			}
 
-			$remainingChildJobs = $remainingChildJobs | Where-Object -Property State -In -Value 'NotStarted', 'Running'
+			$remainingChildJobs = $remainingChildJobs | Where-Object State -In 'NotStarted', 'Running'
 			$doneCount = $totalCount - $remainingChildJobs.Count
 			Write-ProgressHelper -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
 		}
