@@ -208,7 +208,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
-		Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([math]::Floor($index / $pDSLength * 5))
+		Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([System.Math]::Floor($index / $pDSLength * 5))
 		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
 		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
 	}
@@ -252,7 +252,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper | Select-Object -Property Name, Definition
 
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
-		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([Environment]::ProcessorCount * 5) -Parallel {
+		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([System.Environment]::ProcessorCount * 5) -Parallel {
 			#region Get songs download URL - Job
 			#region Get songs download URL - Job setup
 			$songsURL = $Using:songsURL # No need for thread safe array since each runspace only modifiy their index
@@ -306,7 +306,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 
 			$remainingChildJobs = $remainingChildJobs | Where-Object State -In 'NotStarted', 'Running'
 			$doneCount = $totalCount - $remainingChildJobs.Count
-			Write-ProgressHelper -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+			Write-ProgressHelper -Status "Converting each song page URL to download URL ($doneCount/$totalCount)" -PercentComplete (5 + [System.Math]::Floor($doneCount / $totalCount * 15))
 		}
 	} catch {
 		# Necessary to exit script on all errors, otherwise some errors (notably from Invoke-WebRequest) continue after finally
@@ -322,7 +322,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		if (-not $totalCount) {
 			$totalCount = 1 # Avoids a division by zero
 		}
-		Write-ProgressHelper -Status 'Saving converted URLs' -PercentComplete (5 + [math]::Floor($doneCount / $totalCount * 15))
+		Write-ProgressHelper -Status 'Saving converted URLs' -PercentComplete (5 + [System.Math]::Floor($doneCount / $totalCount * 15))
 		$tempFileTemp = "$tempFile.tmp"
 		New-Item -ItemType File -Force $tempFileTemp > $null
 		# $songsURL may have a mix of download URLs and page URLs if the script was interrupted
@@ -355,7 +355,7 @@ for ($index = 0; $index -lt $sULength; $index++) {
 	if ($index + 1 -ne $sULength -and (Test-Path -PathType Leaf $songsFile[$index + 1])) {
 		continue
 	}
-	Write-ProgressHelper -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [math]::Floor($index / $sULength * 80))
+	Write-ProgressHelper -Status "Downloading each song ($index/$sULength)" -PercentComplete (20 + [System.Math]::Floor($index / $sULength * 80))
 
 	$songDownloadURL = $songsURL[$index]
 	$songFile = $songsFile[$index]
