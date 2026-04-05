@@ -33,6 +33,11 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
+    - name: Remove TODOs from khd.ps1
+      # First command removes lines starting with # TODO
+      # Second command removes only the text from # TODO to end of line
+      run: sed -i -e '/^\s*#\s*todo/Id' -e 's/\s*#\s*todo.*//I' khd.ps1
+
     - name: Generate release notes
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
       # If no new changes to khd.ps1, append "None"
