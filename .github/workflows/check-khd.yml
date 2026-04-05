@@ -44,6 +44,12 @@ jobs:
         $config.Output.CIFormat = 'GithubActions'
         Invoke-Pester -Configuration $config
 
+  # Not required to refresh release
+  region-endregion-match-khd:
+    uses: ./.github/workflows/region-endregion-match.yml
+    with:
+      script-path: khd.ps1
+
   call-refresh-latest-release:
     needs: [psscriptanalyzer-khd, pester-khd]
     # Don't refresh release on pull request or not main branch

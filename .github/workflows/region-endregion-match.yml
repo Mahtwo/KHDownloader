@@ -1,0 +1,80 @@
+name: Check region and endregion matching
+run-name: Check region and endregion matching on ${{ inputs.script-path }}
+
+on:
+  # Runs only when called from another workflow
+  workflow_call:
+    inputs:
+      script-path:
+        required: true
+        type: string
+
+jobs:
+  check-region-endregion-match:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout ${{ inputs.script-path }}
+      uses: actions/checkout@v6
+      with :
+        sparse-checkout: ${{ inputs.script-path }}
+        sparse-checkout-cone-mode: false
+
+    - name: Check ${{ inputs.script-path }}
+      run: |
+        region_names_stack=()
+        region_line_indexes_stack=()
+        line_index=1 # File line number starts at 1
+        error_count=0
+
+        push () {
+          local region_name="$1"
+          local line_index="$2"
+          region_names_stack+=("$region_name")
+          region_line_indexes_stack+=("$line_index")
+        }
+        pop () {
+          region_name="${region_names_stack[-1]}"
+          region_line_index="${region_line_indexes_stack[-1]}"
+          unset "region_names_stack[-1]"
+          unset "region_line_indexes_stack[-1]"
+        }
+        empty () {
+          [[ "${#region_names_stack[@]}" -eq 0 ]]
+        }
+        warning () {
+          local message="$1"
+          local line_parameter="${2:+line=$2,}"
+          local endLine_parameter="${3:+endLine=$3,}"
+          echo "::warning file=${{ inputs.script-path }},${line_parameter}${endLine_parameter}title=region-endregion-match::$message"
+          ((error_count++))
+        }
+
+        while IFS= read -r line
+        do
+          case "$line" in
+            *"#region"*)
+              push "$(echo "$line" | sed 's/^\s*#region//')" "$line_index"
+              ;;
+            *"#endregion"*)
+              endregion_name="$(echo "$line" | sed 's/^\s*#endregion//')"
+              if empty
+              then
+                warning "#endregion$endregion_name is missing a corresponding #region" "$line_index"
+                continue
+              fi
+              pop
+              if [[ "$region_name" != "$endregion_name" ]]
+              then
+                warning "Mismatch region name between #region$region_name and #endregion$endregion_name" "$region_line_index" "$line_index"
+              fi
+              ;;
+          esac
+          ((line_index++))
+        done < "${{ inputs.script-path }}"
+        while ! empty
+        do
+          pop
+          warning "#region$region_name is missing a corresponding #endregion" "$region_line_index"
+        done
+        exit "$error_count"

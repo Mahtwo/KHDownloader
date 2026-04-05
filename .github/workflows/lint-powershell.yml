@@ -1,5 +1,5 @@
 # Could be merged back into lint.yml when hiding skipped jobs is possible https://github.com/orgs/community/discussions/18001
-name: PSScriptAnalyzer linter
+name: PowerShell linter
 
 on:
   # Runs when any PowerShell file beside khd.ps1 are changed
@@ -20,10 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     # Set job outputs to values from filter step
     outputs:
-      psscriptanalyzer_changed: ${{ steps.paths-filter.outputs.psscriptanalyzer_changed }}
-      psscriptanalyzer_changed_files: ${{ steps.paths-filter.outputs.psscriptanalyzer_changed_files }}
+      changed_files: ${{ steps.paths-filter.outputs.changed_files }}
       psscriptanalyzer_all: ${{ steps.paths-filter.outputs.psscriptanalyzer_all }}
-      psscriptanalyzer_all_files: ${{ steps.psscriptanalyzer-all-files.outputs.psscriptanalyzer_all_files }}
+      all_files: ${{ steps.psscriptanalyzer-all-files.outputs.all_files }}
     steps:
     - name: Checkout commit
       uses: actions/checkout@v6
@@ -32,10 +31,10 @@ jobs:
       uses: dorny/paths-filter@v3
       id: paths-filter
       with:
-        # khd.ps1 is already checked with PSScriptAnalyzer in the check khd workflow
+        # khd.ps1 is already checked in the check khd workflow
         # path syntax is different from workflow paths filter
         filters: |
-          psscriptanalyzer_changed:
+          changed:
             - added|modified: '**.ps?(d|m)1'
             - '!khd.ps1'
           psscriptanalyzer_all:
@@ -48,16 +47,16 @@ jobs:
     - name: Setup variable psscriptanalyzer_all_files
       id: psscriptanalyzer-all-files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' }}
-      # khd.ps1 is already checked with PSScriptAnalyzer in the check khd workflow
-      run: echo "psscriptanalyzer_all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
+      # khd.ps1 is already checked in the check khd workflow
+      run: echo "all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
 
   psscriptanalyzer-changed:
     needs: setup-variables
-    if: ${{ needs.setup-variables.outputs.psscriptanalyzer_changed == 'true' && needs.setup-variables.outputs.psscriptanalyzer_all != 'false' }}
+    if: ${{ needs.setup-variables.outputs.psscriptanalyzer_all == 'false' }}
     strategy:
       fail-fast: false
       matrix:
-        script-path: ${{ fromJSON(needs.setup-variables.outputs.psscriptanalyzer_changed_files) }}
+        script-path: ${{ fromJSON(needs.setup-variables.outputs.changed_files) }}
     uses: ./.github/workflows/psscriptanalyzer.yml
     with:
       script-path: ${{ matrix.script-path }}
@@ -68,7 +67,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script-path: ${{ fromJSON(needs.setup-variables.outputs.psscriptanalyzer_all_files) }}
+        script-path: ${{ fromJSON(needs.setup-variables.outputs.all_files) }}
     uses: ./.github/workflows/psscriptanalyzer.yml
+    with:
+      script-path: ${{ matrix.script-path }}
+
+  region-endregion-match:
+    needs: setup-variables
+    strategy:
+      fail-fast: false
+      matrix:
+        script-path: ${{ fromJSON(needs.setup-variables.outputs.changed_files) }}
+    uses: ./.github/workflows/region-endregion-match.yml
     with:
       script-path: ${{ matrix.script-path }}
