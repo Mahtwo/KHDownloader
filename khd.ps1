@@ -259,7 +259,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			$albumName = $Using:albumName # Used by Write-WarningHelper
 			$Format = $Using:Format
 			foreach ($jobFunction in $Using:jobFunctions) {
-				New-Item -Path Function: -Name $jobFunction.Name -Value $jobFunction.Definition
+				New-Item -Path Function: -Name $jobFunction.Name -Value $jobFunction.Definition > $null
 			}
 			#endregion Get songs download URL - Job setup
 
