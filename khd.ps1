@@ -2,6 +2,8 @@
 # Original author and source code: https://github.com/Mahtwo/KHDownloader
 
 #region Header
+# Help needs a blank before and after to be parsed
+
 <#
 .SYNOPSIS
 Downloads an album from KHInsider Video Game Music with robust resume functionality.
