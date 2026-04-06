@@ -44,9 +44,6 @@ $items = @(
 	}
 )
 foreach ($item in $items) {& ./khd.ps1 @item}
-
-.LINK
-https://downloads.khinsider.com/
 #>
 
 #Requires -PSEdition Core
