@@ -152,11 +152,11 @@ Describe 'khd.ps1' {
 		}
 
 		It 'All parameters should be correctly exposed' {
-			Get-Command $khdFile | Should -HaveParameter Url -Type uri -Mandatory
-			Get-Command $khdFile | Should -HaveParameter Format -Type string -DefaultValue MP3 -HasArgumentCompleter
+			Get-Command $khdFile | Should -HaveParameter Url -Type uri -Alias u, Uri -Mandatory
+			Get-Command $khdFile | Should -HaveParameter Format -Type string -Alias f -DefaultValue MP3 -HasArgumentCompleter
 			# -Not applies on the entire Should, we cannot verify type AND not mandatory in one command
 			Get-Command $khdFile | Should -Not -HaveParameter Format -Mandatory
-			Get-Command $khdFile | Should -HaveParameter NoCoverArt -Type switch
+			Get-Command $khdFile | Should -HaveParameter NoCoverArt -Alias nca -Type switch
 			Get-Command $khdFile | Should -Not -HaveParameter NoCoverArt -Mandatory
 		}
 

@@ -57,7 +57,7 @@ foreach ($item in $items) {& ./khd.ps1 @item}
 #region Parameters
 param (
 	[Parameter(Position = 0, Mandatory, HelpMessage = 'URL of the album to download, like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album')]
-	[Alias('u')]
+	[Alias('u', 'Uri')]
 	[ValidateScript({
 			if ($_ -notmatch '^(https?://)?downloads.khinsider.com/game-soundtracks/album/[^/]+$') {
 				throw 'Invalid URL, it should look like https://downloads.khinsider.com/game-soundtracks/album/name-of-the-album'
