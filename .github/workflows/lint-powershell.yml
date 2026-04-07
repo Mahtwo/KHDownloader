@@ -22,7 +22,7 @@ jobs:
     outputs:
       changed_files: ${{ steps.paths-filter.outputs.changed_files }}
       psscriptanalyzer_all: ${{ steps.paths-filter.outputs.psscriptanalyzer_all }}
-      all_files: ${{ steps.psscriptanalyzer-all-files.outputs.all_files }}
+      all_files: ${{ steps.all-files.outputs.all_files }}
     steps:
     - name: Checkout commit
       uses: actions/checkout@v6
@@ -46,8 +46,8 @@ jobs:
         predicate-quantifier: 'every'
         list-files: json
 
-    - name: Setup variable psscriptanalyzer_all_files
-      id: psscriptanalyzer-all-files
+    - name: Setup variable all_files
+      id: all-files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' }}
       # khd.ps1 is already checked in the check khd workflow
       run: echo "all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
