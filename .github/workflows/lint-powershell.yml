@@ -28,14 +28,16 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Setup variables with paths-filter
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       id: paths-filter
       with:
         # khd.ps1 is already checked in the check khd workflow
         # path syntax is different from workflow paths filter
+        # **.ps1 works on any root or nested files but **.ps?(d|m)1 only works on root files
+        # **/*.ps?(d|m)1 works for both root and nested files
         filters: |
           changed:
-            - added|modified: '**.ps?(d|m)1'
+            - added|modified: '**/*.ps?(d|m)1'
             - '!khd.ps1'
           psscriptanalyzer_all:
             - 'PSScriptAnalyzerSettings.psd1'
