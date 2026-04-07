@@ -6,16 +6,22 @@ on:
     branches: '**' # Don't run when pushing tags
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   editorconfig:
+    name: EditorConfig
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        persist-credentials: false
 
     - name: Set up editorconfig-checker
-      uses: editorconfig-checker/action-editorconfig-checker@v2.2.0
+      uses: editorconfig-checker/action-editorconfig-checker@840e866d93b8e032123c23bac69dece044d4d84c # v2.2.0
 
     - name: Run editorconfig-checker
       # GitHub actions annotations does not support terminal color codes

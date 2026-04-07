@@ -1,5 +1,5 @@
-name: Check region and endregion matching
-run-name: Check region and endregion matching on ${{ inputs.script-path }}
+name: 'Check #region and #endregion matching'
+run-name: 'Check #region and #endregion matching on ${{ inputs.script-path }}'
 
 on:
   # Runs only when called from another workflow
@@ -9,18 +9,25 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   check-region-endregion-match:
+    name: Check
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
     - name: Checkout ${{ inputs.script-path }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with :
         sparse-checkout: ${{ inputs.script-path }}
         sparse-checkout-cone-mode: false
+        persist-credentials: false
 
     - name: Check ${{ inputs.script-path }}
+      env:
+        INPUTS_SCRIPT_PATH: ${{ inputs.script-path }}
       run: |
         region_names_stack=()
         region_line_indexes_stack=()
@@ -46,7 +53,7 @@ jobs:
           local message="$1"
           local line_parameter="${2:+line=$2,}"
           local endLine_parameter="${3:+endLine=$3,}"
-          echo "::warning file=${{ inputs.script-path }},${line_parameter}${endLine_parameter}title=region-endregion-match::$message"
+          echo "::warning file=${INPUTS_SCRIPT_PATH},${line_parameter}${endLine_parameter}title=region-endregion-match::$message"
           ((error_count++))
         }
 
@@ -71,7 +78,7 @@ jobs:
               ;;
           esac
           ((line_index++))
-        done < "${{ inputs.script-path }}"
+        done < "${INPUTS_SCRIPT_PATH}"
         while ! empty
         do
           pop

@@ -5,9 +5,7 @@ on:
   workflow_call:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow modifying tags and releases
-permissions:
-  contents: write
+permissions: {}
 
 # Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
 concurrency:
@@ -19,11 +17,15 @@ env:
 
 jobs:
   refresh-latest-release:
+    name: Refresh
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    # Sets permissions of github.token
+    permissions:
+      contents: write # Delete and create tag/release
     steps:
     - name: Checkout khd.ps1
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with :
         # Setting up sparse-checkout automatically adds filter: blob:none
         sparse-checkout: |
@@ -32,6 +34,7 @@ jobs:
         sparse-checkout-cone-mode: false
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
 
     - name: Remove TODOs from khd.ps1
       # First command removes lines starting with # TODO

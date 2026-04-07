@@ -14,25 +14,31 @@ on:
       - 'PSScriptAnalyzerSettings.psd1'
       - 'pester/**'
 
+permissions:
+  contents: read
+
 jobs:
   psscriptanalyzer-khd:
+    name: PSScriptAnalyzer
     uses: ./.github/workflows/psscriptanalyzer.yml
     with:
       script-path: khd.ps1
 
   pester-khd:
+    name: Pester
     timeout-minutes: 5
     # TODO : When khd.ps1 becomes compatible on Linux, use matrix Windows Linux Mac
     runs-on: windows-latest
     steps:
     - name: Checkout khd.ps1 and pester
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with :
         # Sparse checkouts only needs one *
         sparse-checkout: |
           khd.ps1
           pester/*
         sparse-checkout-cone-mode: false
+        persist-credentials: false
 
     - name: Run Pester
       shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
@@ -46,14 +52,16 @@ jobs:
 
   # Not required to refresh release
   region-endregion-match-khd:
+    name: '#region #endregion match'
     uses: ./.github/workflows/region-endregion-match.yml
     with:
       script-path: khd.ps1
 
   call-refresh-latest-release:
+    name: Refresh latest release
     needs: [psscriptanalyzer-khd, pester-khd]
     # Don't refresh release on pull request or not main branch
     if: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     permissions:
-      contents: write
+      contents: write # Delete and create tag/release
     uses: ./.github/workflows/refresh-latest-release.yml

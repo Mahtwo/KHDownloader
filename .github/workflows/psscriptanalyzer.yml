@@ -9,33 +9,40 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   run-psscriptanalyzer:
+    name: Run
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
     - name: Checkout ${{ inputs.script-path }} and PSScriptAnalyzerSettings.psd1
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with :
         sparse-checkout: |
           ${{ inputs.script-path }}
           PSScriptAnalyzerSettings.psd1
         sparse-checkout-cone-mode: false
+        persist-credentials: false
 
     # Adapted from Polly lint workflow under the BSD 3-Clause License. Copyright (c) 2015-2025, App vNext
     # https://github.com/App-vNext/Polly/blob/2b569d48f8e6aa141bf4ecd90728d213d380aeb0/.github/workflows/lint.yml#L67
     - name: Check ${{ inputs.script-path }}
+      env:
+        INPUTS_SCRIPT_PATH: ${{ inputs.script-path }}
       shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
       # Cannot capture summary from -ReportSummary so we run pwsh in another process and capture its output
       # Output can be of type string or array depending on number of lines (string if 0 issues)
       # When Invoke-ScriptAnalyzer is called without a valid path, it does not count as a terminating error
       run: |
-        if (-not (Test-Path '${{ inputs.script-path }}')) {
-          Write-Output "::error title=PSScriptAnalyzer::Invoke-ScriptAnalyzer: Cannot find path '${{ inputs.script-path }}' because it does not exist."
+        if (-not (Test-Path $env:INPUTS_SCRIPT_PATH)) {
+          Write-Output "::error title=PSScriptAnalyzer::Invoke-ScriptAnalyzer: Cannot find path $env:INPUTS_SCRIPT_PATH because it does not exist."
           exit -1
         }
         $command = @'
-          $issues = Invoke-ScriptAnalyzer -Path '${{ inputs.script-path }}' -Settings './PSScriptAnalyzerSettings.psd1' -ReportSummary
+          $issues = Invoke-ScriptAnalyzer -Path $env:INPUTS_SCRIPT_PATH -Settings './PSScriptAnalyzerSettings.psd1' -ReportSummary
           foreach ($issue in $issues) {
             $severity = $issue.Severity.ToString()
             $level = $severity -eq 'Error' ? 'error' : $severity -eq 'Warning' ? 'warning' : 'notice'

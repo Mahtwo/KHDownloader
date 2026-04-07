@@ -13,9 +13,13 @@ on:
       - '**.ps[dm]?1'
       - '!khd.ps1'
 
+permissions:
+  contents: read
+
 jobs:
   # Check modified paths, which can later be used to filter jobs or steps
   setup-variables:
+    name: Setup variables
     timeout-minutes: 5
     runs-on: ubuntu-latest
     # Set job outputs to values from filter step
@@ -25,10 +29,12 @@ jobs:
       all_files: ${{ steps.all-files.outputs.all_files }}
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        persist-credentials: false
 
     - name: Setup variables with paths-filter
-      uses: dorny/paths-filter@v4
+      uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
       id: paths-filter
       with:
         # khd.ps1 is already checked in the check khd workflow
@@ -53,6 +59,7 @@ jobs:
       run: echo "all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
 
   psscriptanalyzer-changed:
+    name: PSScriptAnalyzer
     needs: setup-variables
     if: ${{ needs.setup-variables.outputs.psscriptanalyzer_all == 'false' }}
     strategy:
@@ -64,6 +71,7 @@ jobs:
       script-path: ${{ matrix.script-path }}
 
   psscriptanalyzer-all:
+    name: PSScriptAnalyzer
     needs: setup-variables
     if: ${{ needs.setup-variables.outputs.psscriptanalyzer_all == 'true'}}
     strategy:
@@ -75,6 +83,7 @@ jobs:
       script-path: ${{ matrix.script-path }}
 
   region-endregion-match:
+    name: '#region #endregion match'
     needs: setup-variables
     strategy:
       fail-fast: false
