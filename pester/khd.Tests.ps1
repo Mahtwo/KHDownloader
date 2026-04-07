@@ -151,6 +151,10 @@ Describe 'khd.ps1' {
 			Mock Invoke-WebRequest { return @{ Content = '' } }
 		}
 
+		It 'Help should be correctly exposed' {
+			Get-Help -Full $khdFile | Should -Not -BeOfType string
+		}
+
 		It 'All parameters should be correctly exposed' {
 			Get-Command $khdFile | Should -HaveParameter Url -Type uri -Alias u, Uri -Mandatory
 			Get-Command $khdFile | Should -HaveParameter Format -Type string -Alias f -DefaultValue MP3 -HasArgumentCompleter
