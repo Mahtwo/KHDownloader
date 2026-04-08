@@ -63,6 +63,13 @@ jobs:
         predicate-quantifier: 'every'
         list-files: json
 
+    - name: Checkout commit
+      # Pull request event needs checkout to setup variable all_files
+      if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' && github.event_name != 'push' }}
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        persist-credentials: false
+
     - name: Setup variable all_files
       id: all-files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' }}
