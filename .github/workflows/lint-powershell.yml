@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # Runs on any commit from upstream repo and only head commit from pull request
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   # Check modified paths, which can later be used to filter jobs or steps
   setup-variables:
