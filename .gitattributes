@@ -1,0 +1,2 @@
+# Some of the HTML tests files have not a .HTML extension and therefore not considered HTML
+pester/web/downloads.khinsider.com/** linguist-language=HTML
