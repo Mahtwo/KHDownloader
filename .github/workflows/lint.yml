@@ -44,9 +44,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           sparse-checkout: |
-            .github/dependabot.yml
-            .github/workflows/*
-          sparse-checkout-cone-mode: false
+            .github
           persist-credentials: false
 
       - name: Run zizmor
