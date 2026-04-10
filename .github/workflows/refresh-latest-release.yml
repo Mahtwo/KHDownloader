@@ -9,11 +9,12 @@ permissions: {}
 
 # Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
 concurrency:
-  group: refresh-latest-release
+  group: ${{ github.workflow }}-latest
   cancel-in-progress: true
 
 env:
   RELEASE_NOTES_PATH: .github/RELEASE_TEMPLATE.md
+  TAG: latest
 
 jobs:
   refresh-latest-release:
@@ -36,28 +37,59 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
+    - name: Setup variables
+      id: variables
+      run: |
+        # Log only new commits since tag, or all commits if tag does not exist
+        # Most commands for verifying tags only work with annotated tags
+        echo "changes=$(git log "$([ "$(git tag --list "$TAG")" ] && echo "refs/tags/$TAG..HEAD")" --oneline --no-decorate -- :/khd.ps1)" >> "$GITHUB_OUTPUT"
+
+      # changes empty
+
+    - name: Move tag ${{ env.TAG }}
+      if: ${{ steps.variables.outputs.changes == '' }}
+      run: |
+        # Cannot get the old commit after moving tag, and GitHub step summary should not be changed before the command succeed
+        old_commit="$(git show --no-patch --oneline --no-decorate "refs/tags/$TAG")"
+        if git tag --force "$TAG" && git push --force origin "refs/tags/$TAG"
+        then
+          {
+            echo "Move tag $TAG from"
+            echo "$old_commit"
+            echo "to"
+            git show --no-patch --oneline --no-decorate "refs/tags/$TAG"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+      # changes non-empty
+
     - name: Remove TODOs from khd.ps1
+      if: ${{ steps.variables.outputs.changes != '' }}
       # First command removes lines starting with # TODO
       # Second command removes only the text from # TODO to end of line
       run: sed -i -e '/^\s*#\s*todo/Id' -e 's/\s*#\s*todo.*//I' khd.ps1
 
     - name: Generate release notes
+      if: ${{ steps.variables.outputs.changes != '' }}
+      env:
+        CHANGES: ${{ steps.variables.outputs.changes }}
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
       # If no new changes to khd.ps1, append "None"
       run: |
         cat "$RELEASE_NOTES_PATH" > "$GITHUB_STEP_SUMMARY"
-        OUTPUT="$(git log refs/tags/latest..HEAD --oneline --no-decorate -- :/khd.ps1)"
-        echo "${OUTPUT:-None}" | tee --append "$RELEASE_NOTES_PATH" "$GITHUB_STEP_SUMMARY"
+        echo "$CHANGES" | tee --append "$RELEASE_NOTES_PATH" "$GITHUB_STEP_SUMMARY"
 
-    - name: Delete latest release and tag
+    - name: Delete ${{ env.TAG }} release and tag
+      if: ${{ steps.variables.outputs.changes != '' }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release delete latest --cleanup-tag --yes
+      run: gh release delete "$TAG" --cleanup-tag --yes
 
-    - name: Create latest release
+    - name: Create ${{ env.TAG }} release
+      if: ${{ steps.variables.outputs.changes != '' }}
       env:
         GH_TOKEN: ${{ github.token }}
       # Will automatically create the tag
       # When the tag doesn't already exist, release will be a draft by default
-      run: gh release create latest --latest --title "Latest" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
+      run: gh release create "$TAG" --latest --title "${TAG@u}" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
