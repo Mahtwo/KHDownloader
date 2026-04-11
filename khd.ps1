@@ -56,6 +56,12 @@ do {
 	 	$loop = $true
 	}
 } while ($loop)
+
+.LINK
+KHInsider home page : https://downloads.khinsider.com
+
+.LINK
+https://github.com/Mahtwo/KHDownloader
 #>
 
 #Requires -PSEdition Core
