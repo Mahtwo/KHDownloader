@@ -1,5 +1,2 @@
 # Some of the HTML tests files don't have a .HTML extension and therefore aren't considered HTML
-pester/web/downloads.khinsider.com/** linguist-language=HTML
-# Remove some HTML from language stats otherwise the repo primary language is considered to be HTML at 55%
-# Does not remove all as having web languages show up in stats is desirable
-pester/web/downloads.khinsider.com/**.mp3 -linguist-detectable
+#pester/web/downloads.khinsider.com/** linguist-language=HTML # linguist-language force include in stats even with -linguist-detectable
