@@ -53,7 +53,7 @@ do {
 	}
 	# Will still throw on other errors (for example parameters errors)
 	catch [System.Net.Http.HttpRequestException] {
-	 	$loop = $true
+		$loop = $true
 	}
 } while ($loop)
 
