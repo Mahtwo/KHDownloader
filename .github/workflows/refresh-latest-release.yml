@@ -42,7 +42,12 @@ jobs:
       run: |
         # Log only new commits since tag, or all commits if tag does not exist
         # Most commands for verifying tags only work with annotated tags
-        echo "changes=$(git log "$([ "$(git tag --list "$TAG")" ] && echo "refs/tags/$TAG..HEAD")" --oneline --no-decorate -- :/khd.ps1)" >> "$GITHUB_OUTPUT"
+        # changes may be multiline so it must use the syntax with delimiter
+        {
+          echo 'changes<<EOF'
+          git log "$([ "$(git tag --list "$TAG")" ] && echo "refs/tags/$TAG..HEAD")" --oneline --no-decorate -- ':/khd.ps1'
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
 
       # changes empty
 
