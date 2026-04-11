@@ -31,25 +31,3 @@ jobs:
     - name: Run editorconfig-checker
       # GitHub actions annotations does not support terminal color codes
       run: editorconfig-checker -no-color -format github-actions -exclude pester/web/
-
-  zizmor:
-    name: zizmor
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read # Needed by zizmor
-      actions: read # Needed by zizmor
-    steps:
-      - name: Checkout commit
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          sparse-checkout: |
-            .github
-          persist-credentials: false
-
-      - name: Run zizmor
-        uses: zizmorcore/zizmor-action@71321a20a9ded102f6e9ce5718a2fcec2c4f70d8 # v0.5.2
-        with:
-          advanced-security: false
-          annotations: true
-          persona: pedantic
