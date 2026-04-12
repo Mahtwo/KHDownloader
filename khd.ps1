@@ -144,12 +144,15 @@ param (
 				return
 			}
 
-			$MainPageHtml = New-Object -Com 'HTMLFile'
-			$MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
-			$tableHeader = $MainPageHtml.getElementById('songlist_header').children
+			# SingleLine makes . match new line characters, [\s\S] would work with -replace but it's more cumbersome
+			# .*? does the shortest match while .* does the biggest match
+			# Get entire tr of songlist_header
+			$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
+			# Get each th value and remove all HTML tags
+			$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
 			$availableFormats = @()
-			for ($i = $tableHeader.Length - 3; $tableHeader[$i].innerText -ne 'Song Name'; $i--) {
-				$availableFormats += $tableHeader[$i].innerText
+			for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
+				$availableFormats += $tableHeaderValues[$i]
 			}
 			[array]::Reverse($availableFormats)
 
