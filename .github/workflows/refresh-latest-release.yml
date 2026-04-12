@@ -98,3 +98,10 @@ jobs:
       # Will automatically create the tag
       # When the tag doesn't already exist, release will be a draft by default
       run: gh release create "$TAG" --latest --title "${TAG@u}" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
+
+      # It's not clear if --draft=false has no effect with release create or a bug causes releases to sometimes still be draft
+    - name: Publish ${{ env.TAG }} release
+      if: ${{ steps.variables.outputs.changes != '' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release edit "$TAG" --draft=false
