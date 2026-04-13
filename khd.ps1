@@ -182,8 +182,8 @@ $mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] +
 $mainPage = Get-Content -Raw -LiteralPath $mainPageFile
 $MainPageHtml = New-Object -Com 'HTMLFile'
 $MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
-# Replace illegal path characters and consecutive spaces to one space
-$albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
+# Get first h2, replace illegal path characters and consecutive spaces to one space
+$albumName = ([regex]::Match($mainPage, '<h2[^>]*>(.*?)</h2[^>]*>')).Groups[1] -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
 #endregion Get album name
 
 #region Helpers
