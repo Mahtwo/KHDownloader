@@ -241,6 +241,10 @@ Describe 'khd.ps1' {
 				Test-DownloadedFilesHash (@($sourceCoverFile) + @($sourceMp3Files))
 			}
 
+			It 'Only the first album cover art should be downloaded' -Pending {
+				# TODO : Add a second cover art to main page HTML and implement this test
+			}
+
 			It 'Format parameter should be applied case-insensitively with fallback to mp3 per song' {
 				{ & $khdFile -Url $albumUrl -Format m4A -WarningAction SilentlyContinue -WarningVariable script:warningOutput } | Should -Not -Throw
 				$warningOutput | Where-Object -Property Message -Like -Value '*Format*MP3*' | Should -HaveCount 2 -Because 'two songs are only available in MP3'

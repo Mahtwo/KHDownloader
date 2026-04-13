@@ -72,6 +72,7 @@ https://github.com/Mahtwo/KHDownloader
 # TODO : For Linux compatibility, New-Object -Com 'HTMLFile' will need to be replaced with an Install-Module/#Requires -Module)
 # TODO : PSGallery (and -UpdateKHD parameter only available on GitHub release?)
 # TODO : Only get songs page URL from the last downloaded song to last song of the album (since it may be partially downloaded). That means only last song if album is fully downloaded
+# TODO : Add helper (preferably pipelinable) to replace consecutive illegal characters from all OS and \s with a single space. Add a Pester test with context Helpers
 #endregion Header
 
 #region Parameters
