@@ -396,8 +396,9 @@ if (-not $NoCoverArt) {
 	Write-ProgressHelper -Status 'Downloading album cover art' -PercentComplete 99
 
 	# Use first cover art found
-	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
-	$coverArtUrl = $MainPageHtml.GetElementsByClassName('albumImage')[0].GetElementsByTagName('a')[0].href
+	# Will silently fail (coverArtUrl set to empty string) if no cover art was found, although they seem to always have at least one
+	$albumImageFirst = ([regex]::Match($mainPage, '<div[^>]*albumImage[^>]*>.*?</div>', 'SingleLine')).Value
+	$coverArtUrl = [regex]::Replace($albumImageFirst, '.*href="([^"]*)".*', '$1', 'SingleLine')
 	if ($coverArtUrl) {
 		$fileExtension = Split-Path -Extension $coverArtUrl
 		if (-not $fileExtension) {
