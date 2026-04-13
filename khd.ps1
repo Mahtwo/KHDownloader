@@ -405,6 +405,8 @@ if (-not $NoCoverArt) {
 		$filename = 'cover' + $fileExtension
 		$coverArtFile = Join-Path $albumDirectory $filename
 		Invoke-WebRequest -Resume -ErrorAction Stop -OutFile $coverArtFile $coverArtUrl > $null
+	} else {
+		Write-WarningHelper 'No album cover art found'
 	}
 }
 #endregion Download cover art
