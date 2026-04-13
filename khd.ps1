@@ -225,14 +225,13 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	Write-ProgressHelper -Status 'Getting each song page URL' -PercentComplete 0
 
 	# Get page URL of each song
-	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
-	$pDSLength = $playlistDownloadSong.Length
+	$songsPageURL = [regex]::Matches($mainPage, 'playlistDownloadSong.*?href="([^"]*)"', 'SingleLine') | ForEach-Object { $_.Groups[1].Value }
+	$pDSLength = $songsPageURL.Length
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
 		Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([System.Math]::Floor($index / $pDSLength * 5))
-		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
-		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
+		$songsURL[$index] = $Url.GetLeftPart([System.UriPartial]::Authority) + $songsPageURL[$index]
 	}
 
 	# Create file containing all songs page URLs
