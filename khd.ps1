@@ -180,8 +180,6 @@ $Format = $Format.ToUpperInvariant() # No null check needed as a string cannot b
 # Main page HTML file already exist because of argument URL ValidateScript
 $mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
 $mainPage = Get-Content -Raw -LiteralPath $mainPageFile
-$MainPageHtml = New-Object -Com 'HTMLFile'
-$MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
 # Get first h2, replace illegal path characters and consecutive spaces to one space
 $albumName = ([regex]::Match($mainPage, '<h2[^>]*>(.*?)</h2[^>]*>')).Groups[1] -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
 #endregion Get album name
