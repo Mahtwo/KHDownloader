@@ -291,25 +291,27 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			} catch {
 				throw $_
 			}
-			$songPageHtml = New-Object -Com 'HTMLFile'
-			$songPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($SongPage))
-			$songDownloadLinks = $songPageHtml.GetElementsByClassName('songDownloadLink')
+			$songDownloadLinks = [regex]::Matches($SongPage, 'href(?:(?!href).)*?songDownloadLink.*?</span[^>]*>', 'SingleLine') | ForEach-Object {
+				[PSCustomObject]@{
+					href   = [regex]::Replace($_.Value, '.*href="([^"]*)".*', '$1', 'SingleLine')
+					Format = [regex]::Replace($_.Value, '.*download\s*as\s*([^<]*)<.*', '$1', 'SingleLine')
+				}
+			}
 
 			# Check if format is available (the format may not be available for every song)
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith($Format)) {
-					$songsURL[$_] = $songDownloadLink.parentElement.href
+				if ($songDownloadLink.Format -eq $Format) {
+					$songsURL[$_] = $songDownloadLink.href
 					return
 				}
 			}
 
 			# Fallback to MP3
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith('MP3')) {
-					$href = $songDownloadLink.parentElement.href
-					$songsURL[$_] = $href
+				if ($songDownloadLink.Format -eq 'MP3') {
+					$songsURL[$_] = $songDownloadLink.href
 					# Prettify filename without extension from URL for warning
-					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
+					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $songDownloadLink.href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
 					Write-WarningHelper "Format $Format not found for $filename, fallbacking to MP3"
 				}
 			}
