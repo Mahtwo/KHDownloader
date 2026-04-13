@@ -254,9 +254,12 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	if ($Format -ne 'MP3') {
 		# Check if the format is available for this album
 		$formatAvailable = $false
-		$tableHeader = $MainPageHtml.getElementById('songlist_header').children
-		for ($i = $tableHeader.Length - 3; $tableHeader[$i].innerText -ne 'Song Name'; $i--) {
-			if ($tableHeader[$i].innerText -eq $Format) {
+		# Get entire tr of songlist_header
+		$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
+		# Get each th value and remove all HTML tags
+		$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
+		for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
+			if ($tableHeaderValues[$i] -eq $Format) {
 				$formatAvailable = $true
 				break
 			}
