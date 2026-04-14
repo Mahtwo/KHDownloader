@@ -20,7 +20,7 @@ jobs:
   refresh-latest-release:
     name: Refresh
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     # Sets permissions of github.token
     permissions:
       contents: write # Delete and create tag/release

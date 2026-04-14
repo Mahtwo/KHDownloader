@@ -16,7 +16,7 @@ jobs:
   run-psscriptanalyzer:
     name: Run
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout ${{ inputs.script-path }} and PSScriptAnalyzerSettings.psd1
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -26,6 +26,12 @@ jobs:
           PSScriptAnalyzerSettings.psd1
         sparse-checkout-cone-mode: false
         persist-credentials: false
+
+    - name: Install module PSScriptAnalyzer
+      shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
+      # ubuntu-slim has PowerShell but not PSScriptAnalyzer by default
+      # Install-PSResource is much faster than Install-Module
+      run: Install-PSResource -Name PSScriptAnalyzer -Repository PSGallery -TrustRepository
 
     # Adapted from Polly lint workflow under the BSD 3-Clause License. Copyright (c) 2015-2025, App vNext
     # https://github.com/App-vNext/Polly/blob/2b569d48f8e6aa141bf4ecd90728d213d380aeb0/.github/workflows/lint.yml#L67

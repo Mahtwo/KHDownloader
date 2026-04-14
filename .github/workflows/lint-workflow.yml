@@ -22,7 +22,7 @@ jobs:
   zizmor:
     name: zizmor
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Not ubuntu-slim yet because https://github.com/zizmorcore/zizmor-action/issues/74
     permissions:
       contents: read # Needed by zizmor
       actions: read # Needed by zizmor

@@ -33,6 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # ubuntu-slim has PowerShell but not Pester by default, and only 1 core
         os: [windows-latest, ubuntu-latest, macos-latest]
     name: Pester on ${{ matrix.os }}
     timeout-minutes: 5
