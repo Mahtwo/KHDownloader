@@ -36,7 +36,6 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
     name: Pester on ${{ matrix.os }}
     timeout-minutes: 5
-    # TODO : When khd.ps1 becomes compatible on Linux, use matrix Windows Linux Mac
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout khd.ps1 and pester
