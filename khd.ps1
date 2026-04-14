@@ -145,12 +145,15 @@ param (
 				return
 			}
 
-			$MainPageHtml = New-Object -Com 'HTMLFile'
-			$MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
-			$tableHeader = $MainPageHtml.getElementById('songlist_header').children
+			# SingleLine makes . match new line characters, [\s\S] would work with -replace but it's more cumbersome
+			# .*? does the shortest match while .* does the biggest match
+			# Get entire tr of songlist_header
+			$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
+			# Get each th value and remove all HTML tags
+			$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
 			$availableFormats = @()
-			for ($i = $tableHeader.Length - 3; $tableHeader[$i].innerText -ne 'Song Name'; $i--) {
-				$availableFormats += $tableHeader[$i].innerText
+			for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
+				$availableFormats += $tableHeaderValues[$i]
 			}
 			[array]::Reverse($availableFormats)
 
@@ -178,10 +181,8 @@ $Format = $Format.ToUpperInvariant() # No null check needed as a string cannot b
 # Main page HTML file already exist because of argument URL ValidateScript
 $mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
 $mainPage = Get-Content -Raw -LiteralPath $mainPageFile
-$MainPageHtml = New-Object -Com 'HTMLFile'
-$MainPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($mainPage))
-# Replace illegal path characters and consecutive spaces to one space
-$albumName = $MainPageHtml.GetElementsByTagName('h2')[0].innerText -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
+# Get first h2, replace illegal path characters and consecutive spaces to one space
+$albumName = ([regex]::Match($mainPage, '<h2[^>]*>(.*?)</h2[^>]*>')).Groups[1] -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
 #endregion Get album name
 
 #region Helpers
@@ -223,14 +224,14 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	Write-ProgressHelper -Status 'Getting each song page URL' -PercentComplete 0
 
 	# Get page URL of each song
-	$playlistDownloadSong = $MainPageHtml.GetElementsByClassName('playlistDownloadSong')
-	$pDSLength = $playlistDownloadSong.Length
+	# Get from playlistDownloadSong to shortest href and capture href content
+	$songsPageURL = [regex]::Matches($mainPage, 'playlistDownloadSong.*?href="([^"]*)"', 'SingleLine') | ForEach-Object { $_.Groups[1].Value }
+	$pDSLength = $songsPageURL.Length
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
 	for ($index = 0; $index -lt $pDSLength; $index++) {
 		Write-ProgressHelper -Status "Getting each song page URL ($index/$pDSLength)" -PercentComplete ([System.Math]::Floor($index / $pDSLength * 5))
-		$songPageURL = ($playlistDownloadSong[$index].GetElementsByTagName('a'))[0].href
-		$songsURL[$index] = $songPageURL -replace '^about:', $Url.GetLeftPart([System.UriPartial]::Authority)
+		$songsURL[$index] = $Url.GetLeftPart([System.UriPartial]::Authority) + $songsPageURL[$index]
 	}
 
 	# Create file containing all songs page URLs
@@ -253,9 +254,12 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	if ($Format -ne 'MP3') {
 		# Check if the format is available for this album
 		$formatAvailable = $false
-		$tableHeader = $MainPageHtml.getElementById('songlist_header').children
-		for ($i = $tableHeader.Length - 3; $tableHeader[$i].innerText -ne 'Song Name'; $i--) {
-			if ($tableHeader[$i].innerText -eq $Format) {
+		# Get entire tr of songlist_header
+		$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
+		# Get each th value and remove all HTML tags
+		$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
+		for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
+			if ($tableHeaderValues[$i] -eq $Format) {
 				$formatAvailable = $true
 				break
 			}
@@ -289,25 +293,30 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			} catch {
 				throw $_
 			}
-			$songPageHtml = New-Object -Com 'HTMLFile'
-			$songPageHtml.write([System.Text.Encoding]::Unicode.GetBytes($SongPage))
-			$songDownloadLinks = $songPageHtml.GetElementsByClassName('songDownloadLink')
+			# Matches : Get from href to shortest songDownloadLink (without encountering another href) to shortest </span>
+			$songDownloadLinks = [regex]::Matches($SongPage, 'href(?:(?!href).)*?songDownloadLink.*?</span[^>]*>', 'SingleLine') | ForEach-Object {
+				[PSCustomObject]@{
+					# Get href inside
+					href   = [regex]::Replace($_.Value, '.*href="([^"]*)".*', '$1', 'SingleLine')
+					# Get text between "download as " and "<"
+					Format = [regex]::Replace($_.Value, '.*download\s*as\s*([^<]*)<.*', '$1', 'SingleLine')
+				}
+			}
 
 			# Check if format is available (the format may not be available for every song)
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith($Format)) {
-					$songsURL[$_] = $songDownloadLink.parentElement.href
+				if ($songDownloadLink.Format -eq $Format) {
+					$songsURL[$_] = $songDownloadLink.href
 					return
 				}
 			}
 
 			# Fallback to MP3
 			foreach ($songDownloadLink in $songDownloadLinks) {
-				if ($songDownloadLink.innerText.EndsWith('MP3')) {
-					$href = $songDownloadLink.parentElement.href
-					$songsURL[$_] = $href
+				if ($songDownloadLink.Format -eq 'MP3') {
+					$songsURL[$_] = $songDownloadLink.href
 					# Prettify filename without extension from URL for warning
-					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
+					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $songDownloadLink.href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
 					Write-WarningHelper "Format $Format not found for $filename, fallbacking to MP3"
 				}
 			}
@@ -394,8 +403,11 @@ if (-not $NoCoverArt) {
 	Write-ProgressHelper -Status 'Downloading album cover art' -PercentComplete 99
 
 	# Use first cover art found
-	# Will silently fail (coverArtUrl set to null) if no cover art was found, although they seem to always have at least one
-	$coverArtUrl = $MainPageHtml.GetElementsByClassName('albumImage')[0].GetElementsByTagName('a')[0].href
+	# Will silently fail (coverArtUrl set to empty string) if no cover art was found, although they seem to always have at least one
+	# Get entire div of first albumImage (Match only gets first unlike Matches)
+	$albumImageFirst = ([regex]::Match($mainPage, '<div[^>]*albumImage[^>]*>.*?</div>', 'SingleLine')).Value
+	# Get href inside
+	$coverArtUrl = [regex]::Replace($albumImageFirst, '.*href="([^"]*)".*', '$1', 'SingleLine')
 	if ($coverArtUrl) {
 		$fileExtension = Split-Path -Extension $coverArtUrl
 		if (-not $fileExtension) {
