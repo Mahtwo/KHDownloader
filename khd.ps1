@@ -223,6 +223,7 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 	Write-ProgressHelper -Status 'Getting each song page URL' -PercentComplete 0
 
 	# Get page URL of each song
+	# Get from playlistDownloadSong to shortest href and capture href content
 	$songsPageURL = [regex]::Matches($mainPage, 'playlistDownloadSong.*?href="([^"]*)"', 'SingleLine') | ForEach-Object { $_.Groups[1].Value }
 	$pDSLength = $songsPageURL.Length
 	$songsURL = [string[]]::new($pDSLength)
@@ -291,9 +292,12 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			} catch {
 				throw $_
 			}
+			# Matches : Get from href to shortest songDownloadLink (without encountering another href) to shortest </span>
 			$songDownloadLinks = [regex]::Matches($SongPage, 'href(?:(?!href).)*?songDownloadLink.*?</span[^>]*>', 'SingleLine') | ForEach-Object {
 				[PSCustomObject]@{
+					# Get href inside
 					href   = [regex]::Replace($_.Value, '.*href="([^"]*)".*', '$1', 'SingleLine')
+					# Get text between "download as " and "<"
 					Format = [regex]::Replace($_.Value, '.*download\s*as\s*([^<]*)<.*', '$1', 'SingleLine')
 				}
 			}
@@ -399,7 +403,9 @@ if (-not $NoCoverArt) {
 
 	# Use first cover art found
 	# Will silently fail (coverArtUrl set to empty string) if no cover art was found, although they seem to always have at least one
+	# Get entire div of first albumImage (Match only gets first unlike Matches)
 	$albumImageFirst = ([regex]::Match($mainPage, '<div[^>]*albumImage[^>]*>.*?</div>', 'SingleLine')).Value
+	# Get href inside
 	$coverArtUrl = [regex]::Replace($albumImageFirst, '.*href="([^"]*)".*', '$1', 'SingleLine')
 	if ($coverArtUrl) {
 		$fileExtension = Split-Path -Extension $coverArtUrl
