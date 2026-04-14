@@ -30,10 +30,14 @@ jobs:
       script-path: khd.ps1
 
   pester-khd:
-    name: Pester
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    name: Pester on ${{ matrix.os }}
     timeout-minutes: 5
     # TODO : When khd.ps1 becomes compatible on Linux, use matrix Windows Linux Mac
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout khd.ps1 and pester
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
