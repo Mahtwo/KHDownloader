@@ -69,7 +69,6 @@ https://github.com/Mahtwo/KHDownloader
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'commandAst', Justification = 'variable not used in ArgumentCompleter of formats')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'commandName', Justification = 'variable not used in ArgumentCompleter of formats')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'parameterName', Justification = 'variable not used in ArgumentCompleter of formats')]
-# TODO : For Linux compatibility, New-Object -Com 'HTMLFile' will need to be replaced with an Install-Module/#Requires -Module)
 # TODO : PSGallery (and -UpdateKHD parameter only available on GitHub release?)
 # TODO : Only get songs page URL from the last downloaded song to last song of the album (since it may be partially downloaded). That means only last song if album is fully downloaded
 # TODO : Add helper (preferably pipelinable) to replace consecutive illegal characters from all OS and \s with a single space. Add a Pester test with context Helpers
