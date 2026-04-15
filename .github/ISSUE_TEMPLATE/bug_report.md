@@ -26,9 +26,9 @@ khd -Url $url ...
 A clear and concise description of what you expected to happen.
 
 ### Hardware and PowerShell
- - OS and version: [e.g. Ubuntu 26.04, Windows 11 25H2]
- - PowerShell version (use `$PSVersionTable.PSVersion.ToString()`): [e.g. 7.6.0]
- - PowerShell RID (use `[System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier`): [e.g. win-x64]
+- OS and version: [e.g. Ubuntu 26.04, Windows 11 25H2]
+- PowerShell version (use `$PSVersionTable.PSVersion.ToString()`): [e.g. 7.6.0]
+- PowerShell RID (use `[System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier`): [e.g. win-x64]
 - Additional informations (if applicable): [e.g. x64 PowerShell on ARM64 system, WSL]
 
 ### Additional context
