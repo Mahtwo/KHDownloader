@@ -5,7 +5,8 @@ param() # Necessary for the PSScriptAnalyzer suppress rules above
 
 #region Setup
 BeforeAll {
-	$writeDebugMock = $____Pester.Configuration.Output.Verbosity.Value -eq 'Diagnostic' -or $____Pester.Configuration.Debug.WriteDebugMessages.Value -or $DebugPreference -in 'Inquire', 'Continue'
+	$writeDebugMock = $____Pester.Configuration.Output.Verbosity.Value -eq 'Diagnostic' -or
+	$____Pester.Configuration.Debug.WriteDebugMessages.Value -or $DebugPreference -in 'Inquire', 'Continue'
 	$cmdlets = @{}
 	foreach ($cmdlet in 'Invoke-WebRequest', 'Test-Connection', 'New-Item', 'Move-Item', 'Remove-Item', 'Add-Content', 'Join-Path', 'ForEach-Object') {
 		$cmdlets.Add($cmdlet, (Get-Command -CommandType Cmdlet -Name $cmdlet))
@@ -166,11 +167,14 @@ Describe 'khd.ps1' {
 
 		It 'Invalid URL should throw an invalid URL error' {
 			{ & khd 'https://this.com/is/an/invalid/url' } | Should -Throw '*Invalid URL*'
-			{ & khd 'https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017/' } | Should -Throw '*Invalid URL*' -Because 'trailing slash is invalid'
+			{ & khd 'https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017/' } |
+				Should -Throw '*Invalid URL*' -Because 'trailing slash is invalid'
 			# Should -Not -Throw does not actually use ExpectedMessage and instead fails on any throw (Should -Throw does use it)
 			# Keep ExpectedMessage anyway in case this is changed
-			{ & khd 'downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017' } | Should -Not -Throw '*Invalid URL*' -Because 'http(s):// can be omitted'
-			{ & khd 'http://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017' } | Should -Not -Throw '*Invalid URL*' -Because 'http:// is also allowed'
+			{ & khd 'downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017' } |
+				Should -Not -Throw '*Invalid URL*' -Because 'http(s):// can be omitted'
+			{ & khd 'http://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017' } |
+				Should -Not -Throw '*Invalid URL*' -Because 'http:// is also allowed'
 		}
 
 		It 'No internet should throw an internet connection error' {
@@ -246,8 +250,10 @@ Describe 'khd.ps1' {
 			}
 
 			It 'Format parameter should be applied case-insensitively with fallback to mp3 per song' {
-				{ & $khdFile -Url $albumUrl -Format m4A -WarningAction SilentlyContinue -WarningVariable script:warningOutput } | Should -Not -Throw
-				$warningOutput | Where-Object -Property Message -Like -Value '*Format*MP3*' | Should -HaveCount 2 -Because 'two songs are only available in MP3'
+				{ & $khdFile -Url $albumUrl -Format m4A -WarningAction SilentlyContinue -WarningVariable script:warningOutput } |
+					Should -Not -Throw
+				$warningOutput | Where-Object -Property Message -Like -Value '*Format*MP3*' |
+					Should -HaveCount 2 -Because 'two songs are only available in MP3'
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter 'cover.*' | Should -HaveCount 1
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter '*.mp3' | Should -HaveCount 2
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter '*.m4a' | Should -HaveCount 1
@@ -256,7 +262,8 @@ Describe 'khd.ps1' {
 			}
 
 			It 'Unavailable Format parameter for whole album should display only one format not available warning and fallback to mp3' {
-				{ & $khdFile -Url $albumUrl -Format FLAC -WarningAction SilentlyContinue -WarningVariable script:warningOutput } | Should -Not -Throw
+				{ & $khdFile -Url $albumUrl -Format FLAC -WarningAction SilentlyContinue -WarningVariable script:warningOutput } |
+					Should -Not -Throw
 				$warningOutput | Where-Object -Property Message -Like -Value '*Format*MP3*' | Should -HaveCount 1
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter 'cover.*' | Should -HaveCount 1
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter '*.mp3' | Should -HaveCount 3
@@ -338,7 +345,8 @@ Describe 'khd.ps1' {
 
 			It 'Format parameter when songs URL are already present should display a format not checked warning' {
 				Set-TempFile 'SongsURL'
-				{ & $khdFile -Url $albumUrl -Format M4A -NoCoverArt -WarningAction SilentlyContinue -WarningVariable script:warningOutput } | Should -Not -Throw
+				{ & $khdFile -Url $albumUrl -Format M4A -NoCoverArt -WarningAction SilentlyContinue -WarningVariable script:warningOutput } |
+					Should -Not -Throw
 				$warningOutput | Where-Object -Property Message -Like -Value '*format*not*checked*' | Should -Not -BeNullOrEmpty
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory -Filter '*.mp3' | Should -HaveCount 3
 				Get-ChildItem -LiteralPath $downloadAlbumDirectory | Should -HaveCount 3

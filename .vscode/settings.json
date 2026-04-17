@@ -20,6 +20,7 @@
 
 	// Copied from .editorconfig, use .editorconfig settings if different
 	"editor.insertSpaces": false,
+	"editor.rulers": [ 200 ],
 	"files.encoding": "utf8",
 	"files.insertFinalNewline": true,
 	"git.replaceTagsWhenPull": true,

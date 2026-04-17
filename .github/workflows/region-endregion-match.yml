@@ -73,7 +73,8 @@ jobs:
               pop
               if [[ "$region_name" != "$endregion_name" ]]
               then
-                warning "Mismatch region name between #region$region_name and #endregion$endregion_name" "$region_line_index" "$line_index"
+                message="Mismatch region name between #region$region_name and #endregion$endregion_name"
+                warning "$message" "$region_line_index" "$line_index"
               fi
               ;;
           esac

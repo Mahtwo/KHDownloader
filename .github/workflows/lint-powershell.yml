@@ -75,7 +75,10 @@ jobs:
       id: all-files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' }}
       # khd.ps1 is already checked in the check khd workflow
-      run: echo "all_files=$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')" >> $GITHUB_OUTPUT
+      # The generated json is on a single line so multiline syntax isn't needed
+      run: |
+        all_files="$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')"
+        echo "all_files=$all_files" >> $GITHUB_OUTPUT
 
   psscriptanalyzer-changed:
     name: PSScriptAnalyzer

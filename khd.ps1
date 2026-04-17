@@ -149,7 +149,8 @@ param (
 			# Get entire tr of songlist_header
 			$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
 			# Get each th value and remove all HTML tags
-			$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
+			$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') |
+				ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
 			$availableFormats = @()
 			for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
 				$availableFormats += $tableHeaderValues[$i]
@@ -224,7 +225,8 @@ if (-not (Test-Path -PathType Leaf $tempFile)) {
 
 	# Get page URL of each song
 	# Get from playlistDownloadSong to shortest href and capture href content
-	$songsPageURL = [regex]::Matches($mainPage, 'playlistDownloadSong.*?href="([^"]*)"', 'SingleLine') | ForEach-Object { $_.Groups[1].Value }
+	$songsPageURL = [regex]::Matches($mainPage, 'playlistDownloadSong.*?href="([^"]*)"', 'SingleLine') |
+		ForEach-Object { $_.Groups[1].Value }
 	$pDSLength = $songsPageURL.Length
 	$songsURL = [string[]]::new($pDSLength)
 	# Fast enough, parallelization would be slower
@@ -256,7 +258,8 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 		# Get entire tr of songlist_header
 		$tableHeader = [regex]::Replace($mainPage, '.*(<tr[^>]*songlist_header.*?</tr>).*', '$1', 'SingleLine')
 		# Get each th value and remove all HTML tags
-		$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') | ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
+		$tableHeaderValues = [regex]::Matches($tableHeader, '<th[^>]*>(.*?)</th[^>]*>', 'SingleLine') |
+			ForEach-Object { $_.Groups[1].Value -replace '<[^>]*>' }
 		for ($i = $tableHeaderValues.Length - 3; $tableHeaderValues[$i] -ne 'Song Name'; $i--) {
 			if ($tableHeaderValues[$i] -eq $Format) {
 				$formatAvailable = $true
@@ -272,9 +275,11 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	$sULength = $songsURL.Length
 	try {
 		# Put helper functions in variable to use them inside the job ($Using:Function:... does not work)
-		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper | Select-Object -Property Name, Definition
+		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper |
+			Select-Object -Property Name, Definition
 
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
+		# editorconfig-checker-disable-next-line because splitting by pipeline adds an indentation and the closing brace } isn't aligned
 		$getSongsDownloadURLJob = 0..($sULength - 1) | Where-Object { $songsURL[$_].Contains('downloads.khinsider.com/game-soundtracks/album/') } | ForEach-Object -AsJob -ThrottleLimit ([System.Environment]::ProcessorCount * 5) -Parallel {
 			#region Get songs download URL - Job
 			#region Get songs download URL - Job setup

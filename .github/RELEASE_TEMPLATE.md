@@ -1,8 +1,10 @@
 # How to run
 
 - ### **Windows**
-By default on Windows, **scripts** (`.ps1` files) **cannot be run**. More informations [here](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies).\
-To bypass this, you can run the following command in a pwsh terminal to temporarily allow running scripts *until you close the terminal* :
+By default on Windows, **scripts** (`.ps1` files) **cannot be run**. More informations
+[here](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies).\
+To bypass this, you can run the following command in a pwsh terminal
+to temporarily allow running scripts *until you close the terminal* :
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
@@ -12,8 +14,9 @@ And then run the script :
 ```
 
 - ### Linux and macOS
-> [!WARNING]
-> Untested on Linux and macOS
+> [!NOTE]
+> While automatic tests are run on all OS, some bugs may only appear with real user interaction.\
+> Please [report](https://github.com/Mahtwo/KHDownloader/issues/new?template=bug_report.md) any bug you find!
 
 Simply run the script in a pwsh terminal :
 ```powershell

@@ -8,6 +8,10 @@ charset = utf-8
 indent_style = tab
 insert_final_newline = true
 trim_trailing_whitespace = true
+# Not supported yet by EditorConfig VSCode extension https://github.com/editorconfig/editorconfig-vscode/issues/272
+# Safe upper limit (for example: long URLs) because only developers can wrap lines where it makes sense
+# A tab has length of 1 in editorconfig-checker
+max_line_length = 200
 
 [*.json]
 insert_final_newline = false
