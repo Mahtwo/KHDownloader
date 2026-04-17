@@ -8,7 +8,7 @@ assignees: Mahtwo
 ---
 
 ### Checklist
-
+<!-- To fill checkmarks add a "x" like so: [x] -->
 - [ ] **Mandatory**: This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20), including closed ones with label "wontfix".
 - [ ] **Mandatory**: The bug happens on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader. If the bug happens randomly you can leave this unchecked and instead specify your version of KHDownloader.
 - [ ] **Mandatory**: You are human and certify the bug wasn't hallucinated by AI. This doesn't stop you from using AI to find real bugs (i.e. in source code), but AI hallucinated slop with no human verifications will earn a permanent ban.
