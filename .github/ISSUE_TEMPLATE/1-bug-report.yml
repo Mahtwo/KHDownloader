@@ -7,13 +7,20 @@ body:
     attributes:
       label: Checklist
       options:
-      - label: This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20), including closed ones with label "wontfix".
+      - label: >
+          This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20),
+          including closed ones with label "wontfix".
         required: true
-      - label: The bug happens on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader, or at the very least **should still happen** on the latest version in case the bug happens randomly.
+      - label: >
+          The bug happens on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader,
+          or at the very least **should still happen** on the latest version in case the bug happens randomly.
         required: true
       - label: The bug happens independently of your PowerShell profile (use `pwsh -NoProfile`).
         required: true
-      - label: You are human and certify this bug wasn't hallucinated by AI. This doesn't stop you from using AI to find real bugs (i.e. in source code), but AI hallucinated slop with no human verifications will earn a permanent ban.
+      - label: >
+          You are human and certify this bug wasn't hallucinated by AI.
+          This doesn't stop you from using AI to find real bugs (i.e. in source code),
+          but AI hallucinated slop with no human verifications will earn a permanent ban.
         required: true
   - type: input
     attributes:

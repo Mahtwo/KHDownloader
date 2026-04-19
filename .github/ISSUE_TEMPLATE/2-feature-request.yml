@@ -7,9 +7,13 @@ body:
     attributes:
       label: Checklist
       options:
-      - label: This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20), including closed ones with label "wontfix".
+      - label: >
+          This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20),
+          including closed ones with label "wontfix".
         required: true
-      - label: This feature is not present on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader.
+      - label: >
+          This feature is not present
+          on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader.
         required: true
       - label: You are human and certify this missing feature wasn't hallucinated by AI.
         required: true
