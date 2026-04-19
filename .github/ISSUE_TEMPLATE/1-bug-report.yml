@@ -1,0 +1,67 @@
+name: Bug report
+description: Report a bug
+labels: bug
+assignees: Mahtwo
+body:
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+      - label: This isn't a duplicate of an [existing issue](https://github.com/Mahtwo/KHDownloader/issues?q=is%3Aissue%20), including closed ones with label "wontfix".
+        required: true
+      - label: The bug happens on the [latest version](https://github.com/Mahtwo/KHDownloader/releases) of KHDownloader, or at the very least **should still happen** on the latest version in case the bug happens randomly.
+        required: true
+      - label: The bug happens independently of your PowerShell profile (use `pwsh -NoProfile`).
+        required: true
+      - label: You are human and certify this bug wasn't hallucinated by AI. This doesn't stop you from using AI to find real bugs (i.e. in source code), but AI hallucinated slop with no human verifications will earn a permanent ban.
+        required: true
+  - type: input
+    attributes:
+      label: First version with the bug
+      description: Leave empty if unknown.
+      placeholder: version or commit sha [e.g. v1.2.3, ee354fd0a1bf8ac8d28ec67be0d9e5bfa32be8ab]
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: |
+        What the bug is, does it happen on every album or only specific ones, etc.
+        Provide any additional information and as much context as possible.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Commands executed
+      description: |
+        You can add one or multiple examples.
+        Include the full context, for example variables initialization and `<tab>` when using tab completion.
+      placeholder: |
+        $url = "foo"
+        khd -Url $url -Format <tab>
+        ...
+      render: powershell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: PowerShell version
+      description: Use `$PSVersionTable.PSVersion.ToString()`
+      placeholder: 7.6.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: PowerShell RID
+      description: Use `[System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier`
+      placeholder: win-x64
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional informations
+      description: 'For example: terminal used, running x64 PowerShell on ARM64 system, related issues, etc.'
