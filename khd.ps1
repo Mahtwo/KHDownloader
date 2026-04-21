@@ -71,7 +71,6 @@ https://github.com/Mahtwo/KHDownloader
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'parameterName', Justification = 'variable not used in ArgumentCompleter of formats')]
 # TODO : PSGallery (and -UpdateKHD parameter only available on GitHub release?)
 # TODO : Only get songs page URL from the last downloaded song to last song of the album (since it may be partially downloaded). That means only last song if album is fully downloaded
-# TODO : Add helper (preferably pipelinable) to replace consecutive illegal characters from all OS and \s with a single space. Add a Pester test with context Helpers
 #endregion Header
 
 #region Parameters
@@ -177,14 +176,6 @@ if ($null -eq $Url.Scheme) {
 $Format = $Format.ToUpperInvariant() # No null check needed as a string cannot be null
 #endregion Parameters
 
-#region Get album name
-# Main page HTML file already exist because of argument URL ValidateScript
-$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
-$mainPage = Get-Content -Raw -LiteralPath $mainPageFile
-# Get first h2, replace illegal path characters and consecutive spaces to one space
-$albumName = ([regex]::Match($mainPage, '<h2[^>]*>(.*?)</h2[^>]*>')).Groups[1] -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '
-#endregion Get album name
-
 #region Helpers
 function Write-ProgressHelper {
 	param(
@@ -216,7 +207,33 @@ function Write-WarningHelper {
 	)
 	Write-Warning "${albumName}: $Message"
 }
+function ConvertTo-ValidPath {
+	param(
+		[Parameter(ValueFromPipeline)]
+		[ValidateNotNull()]
+		[string]$Path
+	)
+
+	begin {
+		# Removing Windows illegal characters so it's compatible between OS (Linux and macOS are subsets)
+		# Some characters are technically valid like horizontal tabulation "	" but it's not important
+		$illegalCharacters = ([char[]](0..31) + [char[]]':*?"<>|') -join ''
+	}
+	process {
+		# Replace consecutive illegal characters and whitespaces with a single space...
+		# ...Trim whitespace characters at the beginning and whitespace + dot "." characters at the end
+		return ($Path -replace "[$illegalCharacters\s]+", ' ') -replace '^\s*|[\s\.]*$'
+	}
+}
 #endregion Helpers
+
+#region Get album name
+# Main page HTML file already exist because of argument URL ValidateScript
+$mainPageFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.html')
+$mainPage = Get-Content -Raw -LiteralPath $mainPageFile
+# Get first h2, replace illegal path characters and consecutive spaces to one space
+$albumName = ([regex]::Match($mainPage, '<h2[^>]*>(.*?)</h2[^>]*>')).Groups[1] | ConvertTo-ValidPath
+#endregion Get album name
 
 #region Get songs page URL
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ($Url.Segments[-1] + '.khd')
@@ -275,7 +292,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	$sULength = $songsURL.Length
 	try {
 		# Put helper functions in variable to use them inside the job ($Using:Function:... does not work)
-		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper |
+		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper, ConvertTo-ValidPath |
 			Select-Object -Property Name, Definition
 
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
@@ -320,7 +337,7 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 				if ($songDownloadLink.Format -eq 'MP3') {
 					$songsURL[$_] = $songDownloadLink.href
 					# Prettify filename without extension from URL for warning
-					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $songDownloadLink.href) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
+					$filename = [uri]::UnescapeDataString(((Split-Path -LeafBase $songDownloadLink.href) | ConvertTo-ValidPath))
 					Write-WarningHelper "Format $Format not found for $filename, fallbacking to MP3"
 				}
 			}
@@ -373,7 +390,7 @@ $songsFile = [string[]]::new($sULength)
 $albumDirectory = Join-Path $PWD $albumName
 for ($index = 0; $index -lt $sULength; $index++) {
 	$songDownloadURL = $songsURL[$index]
-	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) -replace "[$([System.IO.Path]::GetInvalidFileNameChars() -join '') ]+", ' '))
+	$filename = [uri]::UnescapeDataString(((Split-Path -Leaf $songDownloadURL) | ConvertTo-ValidPath))
 	$filepath = Join-Path $albumDirectory $filename
 	$songsFile[$index] = $filepath
 }

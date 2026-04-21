@@ -191,6 +191,26 @@ Describe 'khd.ps1' {
 	}
 	#endregion Parameters validation
 
+	#region Helpers execution
+	Context 'Helpers execution' {
+		BeforeAll {
+			$khdFileString = Get-Content -Raw $khdFile
+			$khdHelpersString = [regex]::Replace($khdFileString, '.*(#region Helpers.*#endregion Helpers).*', '$1', 'SingleLine')
+			# Dot source (execute) lines between #region Helpers and #endregion Helpers
+			. ([scriptblock]::Create($khdHelpersString))
+		}
+
+		It 'ConvertTo-ValidPath should format path with cross-OS compatibility' {
+			'start:*?"<>|middle?end' | ConvertTo-ValidPath |
+				Should -Be 'start middle end' -Because 'Consecutive illegal characters are replaced with a single space'
+			'start middle  end' | ConvertTo-ValidPath |
+				Should -Be 'start middle end' -Because 'Consecutive whitespace characters are replaced with a single space'
+			"    `tfoo...`t." | ConvertTo-ValidPath |
+				Should -Be 'foo' -Because 'Whitespaces at beginning and whitespaces + ASCII dot at the end are removed'
+		}
+	}
+	#endregion Helpers execution
+
 	#region Script execution
 	Context 'Script execution' {
 		#region Script execution - Setup
