@@ -53,9 +53,12 @@ jobs:
 
     - name: Move tag ${{ env.TAG }}
       if: ${{ steps.variables.outputs.changes == '' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         # Cannot get the old commit after moving tag, and GitHub step summary should not be changed before the command succeed
         old_commit="$(git show --no-patch --oneline --no-decorate "refs/tags/$TAG")"
+        gh auth setup-git
         if git tag --force "$TAG" && git push --force origin "refs/tags/$TAG"
         then
           {
