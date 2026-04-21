@@ -217,20 +217,26 @@ Describe 'khd.ps1' {
 		BeforeAll {
 			$downloadAlbumDirectory = Join-Path 'TestDrive:' 'PowerShell & Pester Racing Original Soundtrack'
 			$sourceDirectory = & $cmdlets['Join-Path'] $PSScriptRoot 'web' 'lambda.vgmtreasurechest.com' 'soundtracks' 'powershell-and-pester-racing-original-soundtrack'
-			$sourceCoverFile = Get-ChildItem -LiteralPath $sourceDirectory -Filter '*.png'
+			$sourceCoverFile = Get-Item -LiteralPath (& $cmdlets['Join-Path'] $sourceDirectory '00%20Front.png')
+			$sourceOtherCoverFiles = Get-ChildItem -LiteralPath $sourceDirectory -Filter '*.png' -Exclude $sourceCoverFile.Name
 			$sourceMp3Files = Get-ChildItem -LiteralPath $sourceDirectory -Filter '*.mp3' -Depth 1
 			$sourceM4aFile = Get-ChildItem -LiteralPath $sourceDirectory -Filter '*.m4a' -Depth 1
 			$sourceMp3ExclusiveFiles = $sourceMp3Files | Where-Object -Property BaseName -NotLike -Value $sourceM4aFile.BaseName
 			$Script:testIndex = 0
 
 			function Test-DownloadedFilesHash {
-				param([string[]]$SourceFiles)
+				param(
+					[string[]]$SourceFiles,
+					[switch]$Not
+				)
 
 				$downloadedFiles = Get-ChildItem -LiteralPath $downloadAlbumDirectory
-				$downloadedFiles | Should -HaveCount $SourceFiles.Count
+				if (-not $Not) {
+					$downloadedFiles | Should -HaveCount $SourceFiles.Count
+				}
 				$sourceHashes = Get-FileHash -LiteralPath $SourceFiles
 				foreach ($downloadedFile in $downloadedFiles) {
-					(Get-FileHash -LiteralPath $downloadedFile).Hash | Should -BeIn $sourceHashes.Hash
+					(Get-FileHash -LiteralPath $downloadedFile).Hash | Should -Not:$Not -BeIn $sourceHashes.Hash
 				}
 			}
 		}
@@ -265,8 +271,10 @@ Describe 'khd.ps1' {
 				Test-DownloadedFilesHash (@($sourceCoverFile) + @($sourceMp3Files))
 			}
 
-			It 'Only the first album cover art should be downloaded' -Pending {
-				# TODO : Add a second cover art to main page HTML and implement this test
+			It 'Only the first album cover art should be downloaded' {
+				{ & $khdFile -Url $albumUrl } | Should -Not -Throw
+				Test-DownloadedFilesHash (@($sourceCoverFile) + @($sourceMp3Files))
+				Test-DownloadedFilesHash -Not $sourceOtherCoverFiles
 			}
 
 			It 'Format parameter should be applied case-insensitively with fallback to mp3 per song' {

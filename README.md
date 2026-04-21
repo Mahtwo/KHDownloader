@@ -4,6 +4,7 @@ Unofficial PowerShell Core script to download albums from KHInsider, with robust
 ## Third-party licenses
 The following third-party assets, including any minor modifications, remain under their original licenses:
 - [00 Front.png](/pester/web/lambda.vgmtreasurechest.com/soundtracks/powershell-and-pester-racing-original-soundtrack/00%2520Front.png)
+and [cover_back.png](/pester/web/lambda.vgmtreasurechest.com/soundtracks/powershell-and-pester-racing-original-soundtrack/cover_back.png)
 	- License: CC0 1.0
 	- Source: https://commons.wikimedia.org/wiki/File:Sports_car_or_race_car_animation.png
 - [01. Title Screen.mp3](/pester/web/lambda.vgmtreasurechest.com/soundtracks/powershell-and-pester-racing-original-soundtrack/bbbeqpez/01.%2520Title%2520Screen.mp3)
