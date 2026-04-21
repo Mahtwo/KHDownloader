@@ -57,13 +57,14 @@ jobs:
           ((error_count++))
         }
 
+        shopt -s extglob
         while IFS= read -r line
         do
           case "$line" in
-            *"#region"*)
+            *([[:space:]])"#region"*)
               push "$(echo "$line" | sed 's/^\s*#region//')" "$line_index"
               ;;
-            *"#endregion"*)
+            *([[:space:]])"#endregion"*)
               endregion_name="$(echo "$line" | sed 's/^\s*#endregion//')"
               if empty
               then
@@ -80,6 +81,7 @@ jobs:
           esac
           ((line_index++))
         done < "${INPUTS_SCRIPT_PATH}"
+        shopt -u extglob
         while ! empty
         do
           pop
