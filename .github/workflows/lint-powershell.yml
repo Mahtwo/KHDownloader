@@ -80,26 +80,17 @@ jobs:
         all_files="$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')"
         echo "all_files=$all_files" >> $GITHUB_OUTPUT
 
-  psscriptanalyzer-changed:
+  psscriptanalyzer:
     name: PSScriptAnalyzer
     needs: setup-variables
-    if: ${{ needs.setup-variables.outputs.psscriptanalyzer_all == 'false' }}
     strategy:
       fail-fast: false
       matrix:
-        script-path: ${{ fromJSON(needs.setup-variables.outputs.changed_files) }}
-    uses: ./.github/workflows/psscriptanalyzer.yml
-    with:
-      script-path: ${{ matrix.script-path }}
-
-  psscriptanalyzer-all:
-    name: PSScriptAnalyzer all
-    needs: setup-variables
-    if: ${{ needs.setup-variables.outputs.psscriptanalyzer_all == 'true'}}
-    strategy:
-      fail-fast: false
-      matrix:
-        script-path: ${{ fromJSON(needs.setup-variables.outputs.all_files) }}
+        script-path: |-
+          ${{ case(
+            needs.setup-variables.outputs.psscriptanalyzer_all == 'true', fromJSON(needs.setup-variables.outputs.all_files),
+            fromJSON(needs.setup-variables.outputs.changed_files)
+          ) }}
     uses: ./.github/workflows/psscriptanalyzer.yml
     with:
       script-path: ${{ matrix.script-path }}
