@@ -78,7 +78,7 @@ jobs:
       # The generated json is on a single line so multiline syntax isn't needed
       run: |
         all_files="$(git ls-files --full-name -- ':/*.ps1' ':/*.psm1' ':/*.psd1' ':/!khd.ps1' | jq -MRnc '[inputs]')"
-        echo "all_files=$all_files" >> $GITHUB_OUTPUT
+        echo "all_files=$all_files" >> "$GITHUB_OUTPUT"
 
   psscriptanalyzer:
     name: PSScriptAnalyzer
