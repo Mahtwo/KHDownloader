@@ -4,6 +4,26 @@
 #region Header
 # Help needs a blank before and after to be parsed
 
+<#PSScriptInfo
+.VERSION 0.0.0-placeholder
+
+.GUID e6a05bc7-7650-4f36-8745-409565470730
+
+.AUTHOR Mahtwo
+
+.TAGS
+Music Download CrossPlatform PSEdition_Core Windows Linux MacOS
+
+.LICENSEURI
+https://mozilla.org/MPL/2.0/
+
+.PROJECTURI
+https://github.com/Mahtwo/KHDownloader
+
+.RELEASENOTES
+https://github.com/Mahtwo/KHDownloader/releases/0.0.0-placeholder
+#>
+
 <#
 .SYNOPSIS
 Downloads an album from KHInsider Video Game Music with robust resume functionality.
