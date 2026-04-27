@@ -50,7 +50,7 @@ None. You can't pipe objects to khd.ps1.
 None. khd.ps1 doesn't generate any output to the pipeline.
 
 .EXAMPLE
-& ./khd.ps1 'https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017' m4a
+khd https://downloads.khinsider.com/game-soundtracks/album/malicious-fallen-original-soundtrack-2017 m4a
 
 .EXAMPLE
 $items = @(
@@ -62,13 +62,13 @@ $items = @(
 		Url = 'https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild'
 	}
 )
-foreach ($item in $items) {& ./khd.ps1 @item}
+foreach ($item in $items) {khd @item}
 
 .EXAMPLE
 do {
 	$loop = $false
 	try {
-		& ./khd.ps1 'https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild' flac
+		khd https://downloads.khinsider.com/game-soundtracks/album/the-legend-of-zelda-breath-of-the-wild flac
 	}
 	# Will still throw on other errors (for example parameters errors)
 	catch [System.Net.Http.HttpRequestException] {
