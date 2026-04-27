@@ -1,25 +1,41 @@
-name: Refresh latest release
+name: Create release
+run-name: Create ${{ inputs.version-type }} release
 
 on:
-  # Runs when called from workflow "Check khd" or manually
-  workflow_call:
+  # Runs only manually
   workflow_dispatch:
+    inputs:
+      version-type:
+        default: patch
+        description: |
+          Corresponds to semantic versioning major.minor.patch.
+          major: breaking changes.
+          minor: backward-compatible new features.
+          patch: backward-compatible bug fixes.
+        options:
+          - major
+          - minor
+          - patch
+        required: true
+        type: choice
 
 permissions: {}
 
-# Allow only one concurrent workflow, skipping runs queued between the run in-progress and latest queued.
+# Allow only one concurrent workflow per commit,
+# since it wouldn't make sense for a single commit to be multiple versions
 concurrency:
-  group: ${{ github.workflow }}-latest
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.sha }}
+  # Stopping in progress may causes discrepancies, for example a version present on GitHub but not PowerShell Gallery
+  cancel-in-progress: false
 
 env:
   RELEASE_NOTES_PATH: .github/RELEASE_TEMPLATE.md
-  TAG: latest
 
 jobs:
-  refresh-latest-release:
-    name: Refresh
+  create-release:
+    name: Create
     timeout-minutes: 5
+    environment: deploy
     runs-on: ubuntu-slim
     # Sets permissions of github.token
     permissions:
@@ -39,72 +55,74 @@ jobs:
 
     - name: Setup variables
       id: variables
-      run: |
-        # Log only new commits since tag, or all commits if tag does not exist
-        # Most commands for verifying tags only work with annotated tags
-        # changes may be multiline so it must use the syntax with delimiter
-        {
-          echo 'changes<<EOF'
-          git log "$([ "$(git tag --list "$TAG")" ] && echo "refs/tags/$TAG..HEAD")" --oneline --no-decorate -- ':/khd.ps1'
-          echo EOF
-        } >> "$GITHUB_OUTPUT"
-
-      # changes empty
-
-    - name: Move tag ${{ env.TAG }}
-      if: ${{ steps.variables.outputs.changes == '' }}
       env:
-        GH_TOKEN: ${{ github.token }}
+        VERSION_TYPE: ${{ inputs.version-type }}
       run: |
-        # Cannot get the old commit after moving tag, and GitHub step summary should not be changed before the command succeed
-        old_commit="$(git show --no-patch --oneline --no-decorate "refs/tags/$TAG")"
-        gh auth setup-git
-        if git tag --force "$TAG" && git push --force origin "refs/tags/$TAG"
-        then
-          {
-            echo "Move tag $TAG from"
-            echo "$old_commit"
-            echo "to"
-            git show --no-patch --oneline --no-decorate "refs/tags/$TAG"
-          } >> "$GITHUB_STEP_SUMMARY"
-        fi
+        # There is no "number of occurences" in the pattern of --match, i.e. 1foo.2bar.3.4 would be valid
+        # Therefore this is the best pattern that can be done with future-proofing for 2 or more digits
+        version_previous="$(git describe --tags --abbrev=0 --match '[0-9]*.[0-9]*.[0-9]*')"
+        [ -z "$version_previous" ] && exit 1
+        echo "version_previous=$version_previous" >> "$GITHUB_OUTPUT"
+        echo "Previous version: $version_previous" >> "$GITHUB_STEP_SUMMARY"
 
-      # changes non-empty
+        IFS=. read -r major minor patch <<< "$version_previous"
+        case "$VERSION_TYPE" in
+          major)
+            version="$((major+1)).0.0"
+            ;;
+          minor)
+            version="$major.$((minor+1)).0"
+            ;;
+          patch)
+            version="$major.$minor.$((patch+1))"
+            ;;
+        esac
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "New version: $version" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Remove TODOs from khd.ps1
-      if: ${{ steps.variables.outputs.changes != '' }}
       # First command removes lines starting with # TODO
       # Second command removes only the text from # TODO to end of line
       run: sed -i -e '/^\s*#\s*todo/Id' -e 's/\s*#\s*todo.*//I' khd.ps1
 
-    - name: Generate release notes
-      if: ${{ steps.variables.outputs.changes != '' }}
+    - name: Replace 0.0.0-placeholder with ${{ env.VERSION }} in khd.ps1
       env:
-        CHANGES: ${{ steps.variables.outputs.changes }}
+        VERSION: ${{ steps.variables.outputs.version }}
+      # Update-PSScriptFileInfo breaks the header section (help unparsable, removing SPDX, ...)
+      # New-PSScriptFileInfo outputs every properties including those with no value specified
+      run: sed -i "s/0.0.0-placeholder/$VERSION/I" khd.ps1
+
+    - name: Generate release notes
+      env:
+        VERSION_PREVIOUS: ${{ steps.variables.outputs.version_previous }}
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
       # If no new changes to khd.ps1, append "None"
       run: |
-        cat "$RELEASE_NOTES_PATH" > "$GITHUB_STEP_SUMMARY"
-        echo "$CHANGES" | tee --append "$RELEASE_NOTES_PATH" "$GITHUB_STEP_SUMMARY"
+        changes="$(git log "refs/tags/$VERSION_PREVIOUS..HEAD" --oneline --no-decorate -- ':/khd.ps1')"
+        {
+          echo "# Changes since $VERSION_PREVIOUS"
+          echo "${changes:-None}"
+        } >> "$RELEASE_NOTES_PATH"
+        cat "$RELEASE_NOTES_PATH" >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Delete ${{ env.TAG }} release and tag
-      if: ${{ steps.variables.outputs.changes != '' }}
-      continue-on-error: true
+    - name: Create GitHub release ${{ env.VERSION }}
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release delete "$TAG" --cleanup-tag --yes
-
-    - name: Create ${{ env.TAG }} release
-      if: ${{ steps.variables.outputs.changes != '' }}
-      env:
-        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ steps.variables.outputs.version }}
       # Will automatically create the tag
       # When the tag doesn't already exist, release will be a draft by default
-      run: gh release create "$TAG" --latest --title "${TAG@u}" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
+      run: gh release create "$VERSION" --latest --title "$VERSION" --draft=false --notes-file "$RELEASE_NOTES_PATH" 'khd.ps1'
 
       # It's not clear if --draft=false has no effect with release create or a bug causes releases to sometimes still be draft
-    - name: Publish ${{ env.TAG }} release
-      if: ${{ steps.variables.outputs.changes != '' }}
+    - name: Publish GitHub release ${{ env.VERSION }}
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release edit "$TAG" --draft=false
+        VERSION: ${{ steps.variables.outputs.version }}
+      run: gh release edit "$VERSION" --draft=false
+
+    - name: Publish PowerShell Gallery release ${{ env.VERSION }}
+      env:
+        PSGALLERY_TOKEN: ${{ secrets.PSGALLERY_TOKEN }}
+        VERSION: ${{ steps.variables.outputs.version }}
+      shell: pwsh -NonInteractive -NoProfile -Command ". '{0}'"
+      run: Publish-Script -LiteralPath khd.ps1 -Repository PSGallery -NuGetApiKey $env:PSGALLERY_TOKEN
