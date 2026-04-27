@@ -1,26 +1,26 @@
-<!-- editorconfig-checker-disable because unlike standard markdown, releases markdown split lines on every new lines even without "\" -->
-<!-- Cannot disable per rule (max_line_length only) yet https://github.com/editorconfig-checker/editorconfig-checker/issues/302 -->
-# How to run
-
-- ### **Windows**
-By default on Windows, **scripts** (`.ps1` files) **cannot be run**. More informations [here](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies).\
-To bypass this, you can run the following command in a pwsh terminal to temporarily allow running scripts *until you close the terminal* :
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-And then run the script :
-```powershell
-& "./khd.ps1" -Url ...
-```
-
-- ### Linux and macOS
+<!-- Unlike standard markdown, releases markdown split lines on every new lines even without "\" -->
 > [!NOTE]
-> While automatic tests are run on all OS, some bugs may only appear with real user interaction.\
-> Please [report](https://github.com/Mahtwo/KHDownloader/issues/new?template=bug_report.md) any bug you find!
+> KHDownloader only works on [PowerShell Core](https://learn.microsoft.com/powershell/scripting/install/installing-powershell), not on Windows PowerShell! Windows PowerShell has the blue icon.
 
-Simply run the script in a pwsh terminal :
+### Install
 ```powershell
-& "./khd.ps1" -Url ...
+Install-Script -Name khd
+```
+Alternatively, see the [PowerShell Gallery page for KHDownloader](https://www.powershellgallery.com/packages/khd/) to install a specific version.
+
+### Update to latest version
+```powershell
+Update-Script -Name khd
+```
+
+### How to run
+Simply run the script in a pwsh terminal:
+```powershell
+khd -Url ...
+```
+You can also see the help, which includes examples:
+```powershell
+Get-Help -Detailed khd
 ```
 
 # Changes
