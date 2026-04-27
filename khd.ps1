@@ -310,8 +310,8 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 	$sULength = $songsURL.Length
 	try {
 		# Put helper functions in variable to use them inside the job ($Using:Function:... does not work)
-		$jobFunctions = Get-ChildItem -Path Function: | Where-Object Name -In Write-WarningHelper, ConvertTo-ValidPath |
-			Select-Object -Property Name, Definition
+		$jobFunctions = Get-ChildItem -LiteralPath Function: |
+			Where-Object Name -In Write-WarningHelper, ConvertTo-ValidPath | Select-Object -Property Name, Definition
 
 		# We assume more CPU cores means more RAM too. -ThrottleLimit has diminishing returns anyway
 		# editorconfig-checker-disable-next-line because splitting by pipeline adds an indentation and the closing brace } isn't aligned
@@ -321,8 +321,14 @@ if (($songsURL -join '').Contains('downloads.khinsider.com/game-soundtracks/albu
 			$songsURL = $Using:songsURL # No need for thread safe array since each runspace only modifiy their index
 			$albumName = $Using:albumName # Used by Write-WarningHelper
 			$Format = $Using:Format
-			foreach ($jobFunction in $Using:jobFunctions) {
-				New-Item -Path Function: -Name $jobFunction.Name -Value $jobFunction.Definition > $null
+			$jobFunctions = $Using:jobFunctions
+
+			# By default runspaces are reused from a pool, variables are cleared but functions are kept per runspace
+			# The -Begin parameter is not available with -Parallel in Foreach-Object
+			if (-not (Get-Item -LiteralPath "function:/$($jobFunctions[0].Name)" -ErrorAction Ignore)) {
+				foreach ($jobFunction in $jobFunctions) {
+					New-Item -Path Function: -Name $jobFunction.Name -Value $jobFunction.Definition > $null
+				}
 			}
 			#endregion Get songs download URL - Job setup
 
