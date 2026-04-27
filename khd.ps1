@@ -26,12 +26,11 @@ https://github.com/Mahtwo/KHDownloader/releases/0.0.0-placeholder
 
 <#
 .SYNOPSIS
-Downloads an album from KHInsider Video Game Music with robust resume functionality.
+Downloads albums from KHInsider Video Game Music with robust resume functionality.
 
 .DESCRIPTION
-The khd.ps1 script downloads an album from the KHInsider Video Game Music website
-specified by the user. If the script stops for any reason, it will resume where
-it previously was when run again with the same album.
+The khd.ps1 script downloads albums from the KHInsider Video Game Music website.
+If the script stops for any reason, it will resume when run again with the same album.
 
 .PARAMETER Url
 URL of the KHInsider album to download,
