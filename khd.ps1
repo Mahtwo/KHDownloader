@@ -88,7 +88,6 @@ https://github.com/Mahtwo/KHDownloader
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'commandAst', Justification = 'variable not used in ArgumentCompleter of formats')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'commandName', Justification = 'variable not used in ArgumentCompleter of formats')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'parameterName', Justification = 'variable not used in ArgumentCompleter of formats')]
-# TODO : PSGallery (and -UpdateKHD parameter only available on GitHub release?)
 # TODO : Only get songs page URL from the last downloaded song to last song of the album (since it may be partially downloaded). That means only last song if album is fully downloaded
 #endregion Header
 
