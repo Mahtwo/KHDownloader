@@ -102,6 +102,7 @@ jobs:
 
     - name: Generate release notes
       env:
+        GH_TOKEN: ${{ github.token }}
         VERSION_PREVIOUS: ${{ steps.variables.outputs.version_previous }}
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
       # If no new changes to khd.ps1, append "None"
