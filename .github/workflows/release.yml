@@ -44,7 +44,7 @@ jobs:
     needs: check-khd
     timeout-minutes: 5
     environment: deploy
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest # .NET needed for publishing to PowerShell Gallery
     # Sets permissions of github.token
     permissions:
       contents: write # Delete and create tag/release
