@@ -106,9 +106,10 @@ jobs:
       # Only use commits that changed khd.ps1 since latest release (:/ means from repo's root)
       # If no new changes to khd.ps1, append "None"
       run: |
+        version_previous_url="$(gh release view "$VERSION_PREVIOUS" --json url --jq '.url')"
         changes="$(git log "refs/tags/$VERSION_PREVIOUS..HEAD" --oneline --no-decorate -- ':/khd.ps1')"
         {
-          echo "# Changes since $VERSION_PREVIOUS"
+          echo "# Changes since [$VERSION_PREVIOUS]($version_previous_url)"
           echo "${changes:-None}"
         } >> "$RELEASE_NOTES_PATH"
         cat "$RELEASE_NOTES_PATH" >> "$GITHUB_STEP_SUMMARY"
