@@ -21,7 +21,9 @@ permissions:
 
 concurrency:
   # Runs on any commit from upstream repo and only head commit from pull request
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  # github.workflow use name of parent, there is no way to get the "current" workflow name on workflow_call
+  # The same kind of prefix should be added in any workflow with at least workflow_call and 1 more event
+  group: check-khd-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
