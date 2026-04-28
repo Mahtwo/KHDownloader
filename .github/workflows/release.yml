@@ -37,7 +37,7 @@ env:
 jobs:
   check-khd:
     name: Check khd
-    uses: ./.github/workflows/release.yml
+    uses: ./.github/workflows/check-khd.yml
 
   create-release:
     name: Create
