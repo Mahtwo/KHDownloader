@@ -7,11 +7,13 @@ on:
     inputs:
       version-type:
         default: patch
+        # Descriptions are shown on a single line, with wrapping if needed
+        # New lines are replaced with space
         description: |
           Corresponds to semantic versioning major.minor.patch.
-          major: breaking changes.
-          minor: backward-compatible new features.
-          patch: backward-compatible bug fixes.
+          major is breaking changes,
+          minor is backward-compatible new features,
+          patch is backward-compatible bug fixes.
         options:
           - major
           - minor
