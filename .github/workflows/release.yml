@@ -19,7 +19,8 @@ on:
         required: true
         type: choice
 
-permissions: {}
+permissions:
+  contents: read # Required for check-khd
 
 # Allow only one concurrent workflow per commit,
 # since it wouldn't make sense for a single commit to be multiple versions
@@ -32,8 +33,13 @@ env:
   RELEASE_NOTES_PATH: .github/RELEASE_TEMPLATE.md
 
 jobs:
+  check-khd:
+    name: Check khd
+    uses: ./.github/workflows/release.yml
+
   create-release:
     name: Create
+    needs: check-khd
     timeout-minutes: 5
     environment: deploy
     runs-on: ubuntu-slim

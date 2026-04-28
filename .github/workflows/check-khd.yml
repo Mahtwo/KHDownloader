@@ -1,7 +1,8 @@
 name: Check khd
 
 on:
-  # Runs when khd.ps1, PSScriptAnalyzerSettings.psd1, or anything inside pester folder are changed
+  # Runs when khd.ps1, PSScriptAnalyzerSettings.psd1, anything inside pester folder are changed,
+  # or when called from another workflow
   push:
     branches: '**' # Don't run when pushing tags
     paths:
@@ -13,6 +14,7 @@ on:
       - 'khd.ps1'
       - 'PSScriptAnalyzerSettings.psd1'
       - 'pester/**'
+  workflow_call:
 
 permissions:
   contents: read
