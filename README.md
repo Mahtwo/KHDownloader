@@ -1,6 +1,18 @@
 # KHDownloader
 Unofficial PowerShell Core script to download albums from KHInsider, with robust resume functionality.
 
+## Installation
+KHDownloader is available on the [PowerShell Gallery](https://www.powershellgallery.com/packages/khd/)!
+To install KHDownloader, run the following command:
+```powershell
+Install-Script -Name khd
+```
+You can then simply run the script:
+```powershell
+khd -Url ...
+```
+For more informations see the [latest release](https://github.com/Mahtwo/KHDownloader/releases/latest).
+
 ## Third-party licenses
 The following third-party assets, including any minor modifications, remain under their original licenses:
 - [00 Front.png](/pester/web/lambda.vgmtreasurechest.com/soundtracks/powershell-and-pester-racing-original-soundtrack/00%2520Front.png)
