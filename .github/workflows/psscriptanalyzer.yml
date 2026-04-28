@@ -1,5 +1,5 @@
-name: Run PSScriptAnalyzer
-run-name: Run PSScriptAnalyzer on ${{ inputs.script-path }}
+name: PSScriptAnalyzer
+run-name: PSScriptAnalyzer on ${{ inputs.script-path }}
 
 on:
   # Runs only when called from another workflow
@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  run-psscriptanalyzer:
-    name: Run
+  psscriptanalyzer:
+    name: PSScriptAnalyzer on ${{ inputs.script-path }}
     timeout-minutes: 5
     runs-on: ubuntu-slim
     steps:

@@ -1,5 +1,5 @@
-name: 'Check #region and #endregion matching'
-run-name: 'Check #region and #endregion matching on ${{ inputs.script-path }}'
+name: '#region #endregion match'
+run-name: '#region #endregion match on ${{ inputs.script-path }}'
 
 on:
   # Runs only when called from another workflow
@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  check-region-endregion-match:
-    name: Check
+  region-endregion-match:
+    name: '#region #endregion match on ${{ inputs.script-path }}'
     timeout-minutes: 5
     runs-on: ubuntu-slim
     steps:

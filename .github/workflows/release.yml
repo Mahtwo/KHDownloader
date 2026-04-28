@@ -1,5 +1,5 @@
-name: Create release
-run-name: Create ${{ inputs.version-type }} release
+name: Release
+run-name: Release ${{ inputs.version-type }} version
 
 on:
   # Runs only manually
@@ -39,8 +39,8 @@ jobs:
     name: Check khd
     uses: ./.github/workflows/check-khd.yml
 
-  create-release:
-    name: Create
+  release:
+    name: Release ${{ inputs.version-type }} version
     needs: check-khd
     timeout-minutes: 5
     environment: deploy
