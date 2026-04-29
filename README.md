@@ -3,9 +3,32 @@ Unofficial PowerShell Core script to download albums from KHInsider, with robust
 
 ## Installation
 KHDownloader is available on the [PowerShell Gallery](https://www.powershellgallery.com/packages/khd/)!
-To install KHDownloader, run the following command:
+To install or update KHDownloader, run the following command:
 ```powershell
-Install-Script -Name khd
+Install-PSResource -Name khd
+```
+Additionally, to make `khd` executable without requiring the `/full/path/to/khd.ps1`, run the following command:
+```powershell
+& {
+	$khdInstallLocation = (Get-InstalledPSResource -Name khd).InstalledLocation
+	if ($env:PATH -notmatch $khdInstallLocation -and
+		$Host.UI.PromptForChoice(
+			'Add script directory to PowerShell PATH environment variable?',
+			"This makes `"khd`" executable without requiring the full path `"$khdInstallLocation$([System.IO.Path]::DirectorySeparatorChar)khd.ps1`"",
+			('&Yes','&No'),
+			0
+		) -eq 0
+	) {
+		# Create directories to $PROFILE.CurrentUserAllHosts if they don't exist
+		$dir = Split-Path $PROFILE.CurrentUserAllHosts -Parent
+		if (-not (Test-Path $dir)) {
+			New-Item -ItemType Directory -Path $dir -Force > $null
+		}
+		Add-Content -LiteralPath $PROFILE.CurrentUserAllHosts -Value ('$env:PATH = "' + $khdInstallLocation + [System.IO.Path]::PathSeparator + '$env:PATH"')
+		# Add it to current session PATH too
+		$env:PATH = $khdInstallLocation + [System.IO.Path]::PathSeparator + $env:PATH
+	}
+}
 ```
 You can then simply run the script:
 ```powershell

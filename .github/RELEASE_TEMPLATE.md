@@ -2,15 +2,35 @@
 > [!NOTE]
 > KHDownloader only works on [PowerShell Core](https://learn.microsoft.com/powershell/scripting/install/installing-powershell), not on Windows PowerShell! Windows PowerShell has the blue icon.
 
-### Install
+### Install or update
 ```powershell
-Install-Script -Name khd
+Install-PSResource -Name khd
 ```
 Alternatively, see the [PowerShell Gallery page for KHDownloader](https://www.powershellgallery.com/packages/khd/) to install a specific version.
 
-### Update to latest version
+### Execute with `khd`
+The following command makes khd.ps1 executable by simply typing `khd` instead of requiring the `/full/path/to/khd.ps1`:
 ```powershell
-Update-Script -Name khd
+& {
+	$khdInstallLocation = (Get-InstalledPSResource -Name khd).InstalledLocation
+	if ($env:PATH -notmatch $khdInstallLocation -and
+		$Host.UI.PromptForChoice(
+			'Add script directory to PowerShell PATH environment variable?',
+			"This makes `"khd`" executable without requiring the full path `"$khdInstallLocation$([System.IO.Path]::DirectorySeparatorChar)khd.ps1`"",
+			('&Yes','&No'),
+			0
+		) -eq 0
+	) {
+		# Create directories to $PROFILE.CurrentUserAllHosts if they don't exist
+		$dir = Split-Path $PROFILE.CurrentUserAllHosts -Parent
+		if (-not (Test-Path $dir)) {
+			New-Item -ItemType Directory -Path $dir -Force > $null
+		}
+		Add-Content -LiteralPath $PROFILE.CurrentUserAllHosts -Value ('$env:PATH = "' + $khdInstallLocation + [System.IO.Path]::PathSeparator + '$env:PATH"')
+		# Add it to current session PATH too
+		$env:PATH = $khdInstallLocation + [System.IO.Path]::PathSeparator + $env:PATH
+	}
+}
 ```
 
 ### How to run
