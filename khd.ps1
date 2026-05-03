@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 # SPDX-License-Identifier: MPL-2.0
 # Original author and source code: https://github.com/Mahtwo/KHDownloader
 
