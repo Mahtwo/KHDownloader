@@ -34,10 +34,13 @@ The following command makes khd.ps1 executable by simply typing `khd` instead of
 ```
 
 ### How to run
-Simply run the script in a pwsh terminal:
+Simply run the script in a PowerShell session:
 ```powershell
 khd -Url ...
 ```
+> [!NOTE]
+> Use `khd.ps1` outside of a PowerShell session
+
 You can also see the help, which includes examples:
 ```powershell
 Get-Help -Detailed khd

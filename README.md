@@ -34,6 +34,9 @@ You can then simply run the script:
 ```powershell
 khd -Url ...
 ```
+> [!NOTE]
+> Use `khd.ps1` outside of a PowerShell session
+
 For more informations see the [latest release](https://github.com/Mahtwo/KHDownloader/releases/latest).
 
 ## Third-party licenses
