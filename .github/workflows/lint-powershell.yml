@@ -40,7 +40,7 @@ jobs:
     - name: Checkout commit
       # Pull request does not need checkout to see modified files
       if: ${{ github.event_name == 'push' }}
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         # zizmor: ignore[artipacked] Needed by dorny/paths-filter on push event
         persist-credentials: ${{ github.event_name == 'push' }}
@@ -67,7 +67,7 @@ jobs:
     - name: Checkout commit
       # Pull request event needs checkout to setup variable all_files
       if: ${{ steps.paths-filter.outputs.psscriptanalyzer_all == 'true' && github.event_name != 'push' }}
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         persist-credentials: false
 
