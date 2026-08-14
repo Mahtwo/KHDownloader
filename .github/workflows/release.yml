@@ -37,7 +37,7 @@ env:
 jobs:
   check-khd:
     name: Check khd
-    uses: ./.github/workflows/check-khd.yml
+    uses: $/.github/workflows/check-khd.yml
 
   release:
     name: Release ${{ inputs.version-type }} version

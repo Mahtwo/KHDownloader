@@ -91,7 +91,7 @@ jobs:
             needs.setup-variables.outputs.psscriptanalyzer_all == 'true', fromJSON(needs.setup-variables.outputs.all_files),
             fromJSON(needs.setup-variables.outputs.changed_files)
           ) }}
-    uses: ./.github/workflows/psscriptanalyzer.yml
+    uses: $/.github/workflows/psscriptanalyzer.yml
     with:
       script-path: ${{ matrix.script-path }}
 
@@ -102,6 +102,6 @@ jobs:
       fail-fast: false
       matrix:
         script-path: ${{ fromJSON(needs.setup-variables.outputs.changed_files) }}
-    uses: ./.github/workflows/region-endregion-match.yml
+    uses: $/.github/workflows/region-endregion-match.yml
     with:
       script-path: ${{ matrix.script-path }}
