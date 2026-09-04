@@ -29,5 +29,4 @@ jobs:
       uses: editorconfig-checker/action-editorconfig-checker@51f63319f592f97930c73d9c46184d20bd206393 # v3.0.0
 
     - name: Run editorconfig-checker
-      # GitHub actions annotations does not support terminal color codes
-      run: editorconfig-checker -no-color -format github-actions -exclude pester/web/
+      run: editorconfig-checker -exclude pester/web/
